@@ -1,0 +1,16 @@
+{
+  "frontend/src/admin/AdminRoutes.tsx": "Admin authentication gate that validates tokens using replica rejection extraction, preserves tokens during IC0508/canister-stopped errors while showing backend-unavailable messages, and clears tokens only for actual auth failures.",
+  "frontend/src/pages/GalleryPage.tsx": "Gallery page with responsive image grid, click-to-expand dialog with proper TypeScript typing for selected gallery item state, and graceful image fallbacks.",
+  "frontend/src/hooks/useLogout.ts": "Shared logout hook that clears Internet Identity session and all React Query cached application data including user profile.",
+  "frontend/src/components/HeaderNav.tsx": "Header navigation component with responsive desktop and mobile menus, now includes conditional logout button for authenticated users.",
+  "frontend/src/admin/hooks/useAdminSession.ts": "Admin session management hook that validates and stores non-empty string tokens in sessionStorage with support for session error messages.",
+  "frontend/src/admin/hooks/useAdminAuth.ts": "Admin authentication hooks that catch replica rejection errors during login, normalize them using shared utilities, and throw user-friendly English error messages for consistent UI display.",
+  "frontend/src/admin/AdminLogin.tsx": "Admin login page with username/password form that displays standardized English error messages from the login mutation including IC0508/canister-stopped errors, with proper loading state management.",
+  "frontend/src/admin/AdminLayout.tsx": "Admin layout shell with sidebar navigation and logout button that renders child admin page content via Outlet instead of manual path switching.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations, now including admin token in all admin-only mutations/queries with automatic session expiration handling.",
+  "frontend/src/admin/utils/option.ts": "Helper utility to extract token strings from Motoko optional return values, handling both direct string/null returns and Option wrapper objects with Some/None variants.",
+  "frontend/src/App.tsx": "Main app component with TanStack Router configuration including properly nested admin sub-routes (/admin/settings, /admin/sections, etc.) that all pass through the AdminRoutes auth gate, plus an admin-scoped catch-all route for unknown admin paths.",
+  "frontend/src/admin/pages/AdminNotFound.tsx": "Admin-scoped not found page that displays a friendly error message and provides a link back to the Admin Dashboard.",
+  "frontend/src/admin/utils/replicaRejection.ts": "Utility to extract and normalize replica rejection error details (error_code, reject_code, reject_message) from various error shapes, with detection for IC0508/canister-stopped conditions.",
+  "frontend/src/admin/utils/adminAuthErrorMessages.ts": "Centralized mapping of replica rejection details to consistent user-friendly English error messages for admin authentication, with logic to determine whether to preserve tokens during temporary backend unavailability."
+}

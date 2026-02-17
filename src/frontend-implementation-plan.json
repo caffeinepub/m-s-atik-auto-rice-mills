@@ -1,0 +1,94 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Admin auth UI: handle stopped-canister (IC0508) replica rejection errors",
+  "requirements": [
+    {
+      "id": "REQ-31",
+      "summary": "Show a clear English error in Admin Login when adminLogin fails due to IC0508/canister-stopped, and ensure the UI exits loading cleanly.",
+      "acceptanceCriteria": [
+        "With the backend canister stopped, submitting the Admin Login form shows an English error message stating that the backend canister is stopped and that the service is temporarily unavailable.",
+        "The Login button returns to the non-loading state after the error; the page remains usable.",
+        "No uncaught exceptions are logged to the console from the login attempt (beyond a single controlled error log, if present)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/utils/replicaRejection.ts",
+          "operation": "create",
+          "description": "Create a shared utility to extract replica rejection details from thrown errors (error_code, reject_code, reject_message) and detect IC0508 / “canister is stopped” conditions, returning a normalized structure suitable for consistent user messaging."
+        },
+        {
+          "path": "frontend/src/admin/utils/adminAuthErrorMessages.ts",
+          "operation": "create",
+          "description": "Add a small mapping layer that converts normalized replica rejection details into consistent, user-friendly English messages for admin login errors (distinguishing IC0508/canister-stopped vs invalid credentials vs generic failures)."
+        },
+        {
+          "path": "frontend/src/admin/hooks/useAdminAuth.ts",
+          "operation": "modify",
+          "description": "Update the admin login mutation to catch and normalize replica rejection errors using the new utilities, then throw an Error with a clear English message for IC0508/canister-stopped (service temporarily unavailable) while preserving the existing invalid-credentials behavior; ensure errors are handled as controlled mutation errors (no uncaught exceptions)."
+        },
+        {
+          "path": "frontend/src/admin/AdminLogin.tsx",
+          "operation": "modify",
+          "description": "Adjust Admin Login error presentation to prefer the standardized English message produced by the login mutation (including IC0508/canister-stopped) and ensure the form remains interactive after failure (no indefinite loading)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-32",
+      "summary": "Update AdminRoutes token-validation gating to recognize IC0508/canister-stopped and show an English backend-unavailable sessionError without clearing a valid stored token.",
+      "acceptanceCriteria": [
+        "When the admin session token exists and AdminRoutes token validation fails due to IC0508/canister-stopped, the UI shows an English error indicating backend unavailability.",
+        "In the IC0508/canister-stopped case, the stored admin token is not automatically cleared (so the session can recover when the backend becomes available).",
+        "For non-IC0508 validation failures (e.g., unauthorized/expired token), the existing behavior remains: token is cleared and an English “session expired/invalid” message is shown."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/AdminRoutes.tsx",
+          "operation": "modify",
+          "description": "Enhance token validation error handling to use the shared replica rejection extractor; when IC0508/canister-stopped is detected, keep the stored admin token intact and set an English sessionError indicating the admin backend is temporarily unavailable; otherwise keep existing behavior (clear token + session expired/invalid message). Use the existing admin gating flow supported by the selected authorization component for access-restricted admin UX; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/hooks/useAdminSession.ts",
+          "operation": "modify",
+          "description": "Ensure sessionError lifecycle supports the new backend-unavailable message without forcing token clearing; keep token storage/validation rules intact and avoid introducing non-English user-facing strings."
+        },
+        {
+          "path": "frontend/src/admin/utils/replicaRejection.ts",
+          "operation": "modify",
+          "description": "Extend/confirm the extractor covers the error shapes produced by token-validation calls (including nested causes/strings) and reliably flags IC0508 and/or reject_message containing “is stopped”."
+        }
+      ]
+    },
+    {
+      "id": "REQ-33",
+      "summary": "Standardize replica rejection detail extraction and ensure consistent English user-facing messaging across admin auth error states (login + token validation).",
+      "acceptanceCriteria": [
+        "Admin login and admin token validation errors produce consistent English messaging for IC0508/canister-stopped vs invalid credentials vs unauthorized/expired token.",
+        "User-facing strings introduced or updated for these error states are in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/utils/replicaRejection.ts",
+          "operation": "modify",
+          "description": "Finalize a single, reusable normalization contract for replica rejection errors (error_code, reject_code, reject_message) so both login and route gating can produce consistent behavior and text."
+        },
+        {
+          "path": "frontend/src/admin/utils/adminAuthErrorMessages.ts",
+          "operation": "modify",
+          "description": "Centralize all admin-auth-related user-facing English strings for error states (IC0508/canister-stopped, invalid credentials, session expired/invalid, generic failure) to ensure consistent wording across login and token validation."
+        },
+        {
+          "path": "frontend/src/admin/hooks/useAdminAuth.ts",
+          "operation": "modify",
+          "description": "Adopt the shared extractor + message mapper for adminLogin failures so the thrown error messages are consistent and English-only across admin authentication states."
+        },
+        {
+          "path": "frontend/src/admin/AdminRoutes.tsx",
+          "operation": "modify",
+          "description": "Adopt the shared extractor + message mapper for token-validation failures so the sessionError displayed on the login screen is consistent and English-only across admin authentication states."
+        }
+      ]
+    }
+  ]
+}

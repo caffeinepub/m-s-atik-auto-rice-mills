@@ -1,0 +1,26 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-17T11:02:39.639Z",
+  "summary": "The diff implements centralized replica-rejection extraction and standardized English admin-auth error messaging, updates admin login to surface controlled error text, and updates admin route token-validation gating to preserve tokens during IC0508/canister-stopped backend outages while showing an English backend-unavailable message.",
+  "missing_requirements": [],
+  "hallucinated_features": [
+    {
+      "description": "Unrelated feature changes are described (e.g., GalleryPage updates, HeaderNav logout button, useLogout changes, AdminLayout routing changes, App router nesting, AdminNotFound page, useQueries updates), but these are not requested by REQ-31/32/33 and are only evidenced as claims inside a summary file rather than shown code diffs.",
+      "reason": "BuildRequest is narrowly scoped to admin login/token-validation handling for canister-stopped errors and standardized rejection parsing/messages; the diff summary file includes additional change descriptions outside that scope.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
+    }
+  ],
+  "confidence": 0.78,
+  "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/src/admin/AdminLogin.tsx",
+    "frontend/src/admin/AdminRoutes.tsx",
+    "frontend/src/admin/hooks/useAdminAuth.ts",
+    "frontend/src/admin/utils/adminAuthErrorMessages.ts",
+    "frontend/src/admin/utils/replicaRejection.ts",
+    "project_state.json"
+  ]
+}

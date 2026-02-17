@@ -1,0 +1,70 @@
+{
+  "kind": "build_request",
+  "title": "Handle stopped-backend canister errors during admin login",
+  "projectName": "Atik Rice Mills CMS",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-31",
+      "text": "When backend calls fail with replica rejection error IC0508 (reject code 5) indicating the backend canister is stopped (e.g., canister ID ry7no-ryaaa-aaaag-aww3q-cai), display a clear English error message in the Admin Login UI instead of a generic error, and do not crash or leave the UI in an indefinite loading state.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "The replica returned a rejection error... Reject text: Canister ry7no-ryaaa-aaaag-aww3q-cai is stopped ... Method name: adminLogin ... error_code: IC0508"
+        ]
+      },
+      "acceptanceCriteria": [
+        "With the backend canister stopped, submitting the Admin Login form shows an English error message stating that the backend canister is stopped and that the service is temporarily unavailable.",
+        "The Login button returns to the non-loading state after the error; the page remains usable.",
+        "No uncaught exceptions are logged to the console from the login attempt (beyond a single controlled error log, if present)."
+      ]
+    },
+    {
+      "id": "REQ-32",
+      "text": "Update admin route gating token-validation error handling to recognize IC0508/“canister is stopped” errors and present an English sessionError message that indicates the admin panel backend is unavailable, without incorrectly clearing a valid session token solely due to the canister-stopped condition.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "reject_message\": \"Canister ry7no-ryaaa-aaaag-aww3q-cai is stopped\""
+        ]
+      },
+      "acceptanceCriteria": [
+        "When the admin session token exists and AdminRoutes token validation fails due to IC0508/canister-stopped, the UI shows an English error indicating backend unavailability.",
+        "In the IC0508/canister-stopped case, the stored admin token is not automatically cleared (so the session can recover when the backend becomes available).",
+        "For non-IC0508 validation failures (e.g., unauthorized/expired token), the existing behavior remains: token is cleared and an English “session expired/invalid” message is shown."
+      ]
+    },
+    {
+      "id": "REQ-33",
+      "text": "Standardize extraction of replica rejection details (error_code, reject_code, reject_message) from thrown errors for display in user-friendly English messages, and ensure user-facing text remains English across admin authentication error states.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin login and admin token validation errors produce consistent English messaging for IC0508/canister-stopped vs invalid credentials vs unauthorized/expired token.",
+        "User-facing strings introduced or updated for these error states are in English."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not edit files under frontend/src/components/ui (shadcn UI) or other paths listed as immutable in SYSTEM_CONTEXT.",
+    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services."
+  ],
+  "nonGoals": [
+    "Implementing canister management actions (starting/stopping the canister) from the application UI.",
+    "Changing the admin username/password credentials away from admin/admin."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-when-backend-calls-fail-with-replica-rejection-error-ic0508-reject-code-5-indicating-the-backend-canister-is-stopped-e-g-canister-id-ry7no-ryaaa-aaaag-aww3q-cai-display-a-clear-english-error-message-in-the-admin-login-ui-instead-of-a-generic-error-and-do-not-crash-or-leave-the-ui-in-an-indefinite-loading-state",
+      "featureTitle": "When backend calls fail with replica rejection error IC0508 (reject code 5) indicating the backend canister is stopped (e.g., canister ID ry7no-ryaaa-aaaag-aww3q-cai), display a clear English error message in the Admin Login UI instead of a generic error, and do not crash or leave the UI in an indefinite loading state.",
+      "files": [
+        "frontend/src/admin/AdminLogin.tsx",
+        "frontend/src/admin/hooks/useAdminAuth.ts",
+        "frontend/src/admin/utils/adminAuthErrorMessages.ts",
+        "frontend/src/admin/utils/replicaRejection.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-31"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-admin-route-gating-token-validation-error-handling-to-recognize-ic0508-canister-is-stopped-errors-and-present-an-english-sessionerror-message-that-indicates-the-admin-panel-backend-is-unavailable-without-incorrectly-clearing-a-valid-session-token-solely-due-to-the-canister-stopped-condition",
+      "featureTitle": "Update admin route gating token-validation error handling to recognize IC0508/“canister is stopped” errors and present an English sessionError message that indicates the admin panel backend is unavailable, without incorrectly clearing a valid session token solely due to the canister-stopped condition.",
+      "files": [
+        "frontend/src/admin/AdminRoutes.tsx",
+        "frontend/src/admin/utils/replicaRejection.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-32"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-standardize-extraction-of-replica-rejection-details-error-code-reject-code-reject-message-from-thrown-errors-for-display-in-user-friendly-english-messages-and-ensure-user-facing-text-remains-english-across-admin-authentication-error-states",
+      "featureTitle": "Standardize extraction of replica rejection details (error_code, reject_code, reject_message) from thrown errors for display in user-friendly English messages, and ensure user-facing text remains English across admin authentication error states.",
+      "files": [
+        "frontend/src/admin/AdminRoutes.tsx",
+        "frontend/src/admin/hooks/useAdminAuth.ts",
+        "frontend/src/admin/utils/adminAuthErrorMessages.ts",
+        "frontend/src/admin/utils/replicaRejection.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-33"
+      ],
+      "confidence": "high"
+    }
+  ]
+}
