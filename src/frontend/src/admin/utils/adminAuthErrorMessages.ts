@@ -10,6 +10,7 @@ export const ADMIN_AUTH_ERRORS = {
   INVALID_CREDENTIALS: 'Invalid username or password. Please check your credentials and try again.',
   SESSION_EXPIRED: 'Your session has expired. Please log in again.',
   SESSION_INVALID: 'Your session is invalid. Please log in again.',
+  UNAUTHORIZED: 'Invalid or expired session. Please log in again.',
   GENERIC_ERROR: 'An error occurred. Please try again.',
 } as const;
 
@@ -28,6 +29,14 @@ export function getAuthErrorMessage(
   // General connectivity failure
   if (details.isConnectivityFailure) {
     return ADMIN_AUTH_ERRORS.BACKEND_UNAVAILABLE;
+  }
+
+  // Unauthorized/invalid token (for validation context)
+  if (details.isUnauthorized) {
+    if (context === 'validation') {
+      return ADMIN_AUTH_ERRORS.SESSION_EXPIRED;
+    }
+    return ADMIN_AUTH_ERRORS.UNAUTHORIZED;
   }
 
   // For validation context, distinguish between expired/invalid

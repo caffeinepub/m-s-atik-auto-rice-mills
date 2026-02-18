@@ -12,6 +12,8 @@ import {
   Mail,
   MessageSquare,
   LogOut,
+  Lock,
+  Users,
 } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
 
@@ -23,6 +25,8 @@ const navItems = [
   { path: '/admin/gallery', label: 'Gallery', icon: Image },
   { path: '/admin/contact', label: 'Contact Info', icon: Mail },
   { path: '/admin/messages', label: 'Messages', icon: MessageSquare },
+  { path: '/admin/password', label: 'Change Password', icon: Lock },
+  { path: '/admin/admins', label: 'Admin Accounts', icon: Users },
 ];
 
 function AdminSidebar() {

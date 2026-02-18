@@ -9,6 +9,7 @@ export interface ReplicaRejectionDetails {
   rejectMessage?: string;
   isCanisterStopped: boolean;
   isConnectivityFailure: boolean;
+  isUnauthorized: boolean;
 }
 
 /**
@@ -19,6 +20,7 @@ export function extractReplicaRejection(error: any): ReplicaRejectionDetails {
   const details: ReplicaRejectionDetails = {
     isCanisterStopped: false,
     isConnectivityFailure: false,
+    isUnauthorized: false,
   };
 
   if (!error) {
@@ -42,6 +44,7 @@ export function extractReplicaRejection(error: any): ReplicaRejectionDetails {
     if (causeDetails.errorCode) details.errorCode = causeDetails.errorCode;
     if (causeDetails.rejectCode) details.rejectCode = causeDetails.rejectCode;
     if (causeDetails.rejectMessage) details.rejectMessage = causeDetails.rejectMessage;
+    if (causeDetails.isUnauthorized) details.isUnauthorized = true;
   }
 
   // Check error message string for rejection details
@@ -69,6 +72,21 @@ export function extractReplicaRejection(error: any): ReplicaRejectionDetails {
     // Store the full message if we don't have a reject message yet
     if (!details.rejectMessage && message.includes('is stopped')) {
       details.rejectMessage = error.message;
+    }
+
+    // Check for unauthorized/invalid token patterns
+    if (
+      message.includes('unauthorized') ||
+      message.includes('invalid') && (message.includes('token') || message.includes('admin')) ||
+      message.includes('expired') ||
+      message.includes('only admins can') ||
+      (details.rejectMessage && (
+        details.rejectMessage.toLowerCase().includes('unauthorized') ||
+        details.rejectMessage.toLowerCase().includes('invalid') ||
+        details.rejectMessage.toLowerCase().includes('expired')
+      ))
+    ) {
+      details.isUnauthorized = true;
     }
 
     // Check for general connectivity failures

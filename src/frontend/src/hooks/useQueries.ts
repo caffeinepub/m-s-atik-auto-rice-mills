@@ -81,6 +81,7 @@ export function useGetMessages(adminToken: string | null) {
     queryKey: ['messages', adminToken],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
+      if (!adminToken) throw new Error('Admin token is required');
       return withQueryTimeout(() => actor.getMessages(adminToken));
     },
     enabled: !!actor && !isFetching && !!adminToken,
@@ -149,6 +150,7 @@ export function useSaveSiteSettings() {
   return useMutation({
     mutationFn: async ({ siteName, logoUrl, adminToken }: { siteName: string; logoUrl: string; adminToken: string | null }) => {
       if (!actor) throw new Error('Actor not available');
+      if (!adminToken) throw new Error('Admin token is required');
       return withQueryTimeout(() => actor.updateSiteSettings(siteName, logoUrl, adminToken));
     },
     onSuccess: () => {
@@ -167,6 +169,7 @@ export function useInitializeContent() {
   return useMutation({
     mutationFn: async (adminToken: string | null) => {
       if (!actor) throw new Error('Actor not available');
+      if (!adminToken) throw new Error('Admin token is required');
       return withQueryTimeout(() => actor.initializeContent(adminToken));
     },
     onSuccess: () => {

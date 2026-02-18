@@ -6,11 +6,11 @@ import Time "mo:core/Time";
 import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
-import Random "mo:core/Random";
-import Blob "mo:core/Blob";
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+
+
 
 actor {
   // Initialize authorization system
@@ -63,6 +63,17 @@ actor {
     logoUrl : Text;
   };
 
+  // Admin Types
+  public type AdminAccount = {
+    username : Text;
+    password : Text;
+  };
+
+  public type TokenInfo = {
+    username : Text;
+    issuedTime : Time.Time;
+  };
+
   // State
   let userProfiles = Map.empty<Principal, UserProfile>();
   let sections = Map.empty<Nat, Section>();
@@ -80,10 +91,13 @@ actor {
   };
   var nextId = 1;
 
-  // Admin token management
-  let adminTokens = Map.empty<Text, Time.Time>();
+  // Admin accounts
+  let adminAccounts = Map.empty<Text, AdminAccount>();
+
+  // Admin token management - now stores username with token
+  let adminTokens = Map.empty<Text, TokenInfo>();
   var tokenCounter : Nat = 0;
-  let TOKEN_EXPIRY_NS : Time.Time = 24 * 60 * 60 * 1_000_000_000; // 24 hours in nanoseconds
+  let TOKEN_EXPIRY_NS : Time.Time = 24 * 60 * 60 * 1_000_000_000; // 24 hours in ns
 
   // Generate a simple but unique admin token
   func generateAdminToken() : Text {
@@ -94,43 +108,147 @@ actor {
 
   // Admin authentication functions
   public shared ({ caller }) func adminLogin(username : Text, password : Text) : async ?Text {
+    // If default admin credentials are used and no account exists, create it automatically
     if (Text.equal(username, "admin") and Text.equal(password, "admin")) {
-      let token = generateAdminToken();
-      let now = Time.now();
-      adminTokens.add(token, now);
-      ?token;
-    } else {
-      null;
+      switch (getAdminAccount("admin")) {
+        case (null) {
+          adminAccounts.add("admin", { username = "admin"; password = "admin" });
+        };
+        case (?_) { () };
+      };
     };
-  };
 
-  // Verify admin token - returns true if valid, false otherwise
-  func isValidAdminToken(token : ?Text) : Bool {
-    switch (token) {
-      case (null) { false };
-      case (?t) {
-        switch (adminTokens.get(t)) {
-          case (null) { false };
-          case (?issuedTime) {
-            let now = Time.now();
-            let age = now - issuedTime;
-            if (age > TOKEN_EXPIRY_NS) {
-              // Token expired, remove it
-              adminTokens.remove(t);
-              false;
-            } else {
-              true;
-            };
-          };
+    switch (getAdminAccount(username)) {
+      case (null) { null };
+      case (?account) {
+        if (Text.equal(account.password, password)) {
+          let token = generateAdminToken();
+          let now = Time.now();
+          adminTokens.add(token, { username = username; issuedTime = now });
+
+          ?token;
+        } else {
+          null;
         };
       };
     };
   };
 
-  // Verify admin token and trap if invalid
-  func requireAdminToken(token : ?Text) : () {
+  // Admin account management functions
+  public shared ({ caller }) func addAdminAccount(username : Text, password : Text, adminToken : Text) : async () {
+    requireAdminAuth(adminToken);
+
+    switch (getAdminAccount(username)) {
+      case (null) {
+        adminAccounts.add(username, { username; password });
+      };
+      case (?_) {
+        Runtime.trap("Username already exists");
+      };
+    };
+  };
+
+  public shared ({ caller }) func changeAdminPassword(adminToken : Text, newPassword : Text) : async () {
+    let username = validateAdminTokenAndGetUsername(adminToken);
+
+    switch (getAdminAccount(username)) {
+      case (null) {
+        Runtime.trap("Admin account not found");
+      };
+      case (?_) {
+        adminAccounts.add(username, { username; password = newPassword });
+      };
+    };
+  };
+
+  public shared ({ caller }) func changeOtherAdminPassword(adminToken : Text, username : Text, newPassword : Text) : async () {
+    // Only admins can change other admins' passwords
+    requireAdminAuth(adminToken);
+
+    switch (getAdminAccount(username)) {
+      case (null) {
+        Runtime.trap("Admin account not found");
+      };
+      case (?_) {
+        adminAccounts.add(username, { username; password = newPassword });
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteAdminAccount(adminToken : Text, username : Text) : async () {
+    requireAdminAuth(adminToken);
+
+    // Prevent deleting the default admin account
+    if (Text.equal(username, "admin")) {
+      Runtime.trap("Cannot delete default admin account");
+    };
+
+    switch (getAdminAccount(username)) {
+      case (null) {
+        Runtime.trap("Admin account not found");
+      };
+      case (?_) {
+        adminAccounts.remove(username);
+      };
+    };
+  };
+
+  public query ({ caller }) func listAdminAccounts(adminToken : Text) : async [Text] {
+    // Only admins can list admin accounts
+    if (not isValidAdminToken(adminToken)) {
+      Runtime.trap("Unauthorized: Only admins can list admin accounts");
+    };
+
+    let usernames = adminAccounts.keys();
+    usernames.toArray();
+  };
+
+  // Helper functions for admin account management
+  func getAdminAccount(username : Text) : ?AdminAccount {
+    adminAccounts.get(username);
+  };
+
+  // Validate admin token and return associated username
+  func validateAdminTokenAndGetUsername(token : Text) : Text {
+    switch (adminTokens.get(token)) {
+      case (null) {
+        Runtime.trap("Invalid admin token");
+      };
+      case (?tokenInfo) {
+        let now = Time.now();
+        let age = now - tokenInfo.issuedTime;
+        if (age > TOKEN_EXPIRY_NS) {
+          // Token expired, remove it
+          adminTokens.remove(token);
+          Runtime.trap("Token expired");
+        };
+        tokenInfo.username;
+      };
+    };
+  };
+
+  // Verify admin token
+  func isValidAdminToken(token : Text) : Bool {
+    switch (adminTokens.get(token)) {
+      case (null) { false };
+      case (?tokenInfo) {
+        let now = Time.now();
+        let age = now - tokenInfo.issuedTime;
+        if (age > TOKEN_EXPIRY_NS) {
+          // Token expired, remove it
+          adminTokens.remove(token);
+          false;
+        } else {
+          true;
+        };
+      };
+    };
+  };
+
+  // Admin authorization check
+  func requireAdminAuth(token : Text) : () {
     if (not isValidAdminToken(token)) {
-      Runtime.trap("Unauthorized: Only admins can perform this action");
+      Runtime.trap("Unauthorized: Invalid or expired admin token");
     };
   };
 
@@ -143,7 +261,7 @@ actor {
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not Principal.equal(caller, user) and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
     userProfiles.get(user);
@@ -157,8 +275,8 @@ actor {
   };
 
   // Admin Functions - Content Management
-  public shared ({ caller }) func createSection(title : Text, content : Text, adminToken : ?Text) : async () {
-    requireAdminToken(adminToken);
+  public shared ({ caller }) func createSection(title : Text, content : Text, adminToken : Text) : async () {
+    requireAdminAuth(adminToken);
 
     let id = nextId;
     let newSection : Section = { id; title; content };
@@ -166,8 +284,8 @@ actor {
     nextId += 1;
   };
 
-  public shared ({ caller }) func updateSection(id : Nat, title : Text, content : Text, adminToken : ?Text) : async () {
-    requireAdminToken(adminToken);
+  public shared ({ caller }) func updateSection(id : Nat, title : Text, content : Text, adminToken : Text) : async () {
+    requireAdminAuth(adminToken);
 
     switch (sections.get(id)) {
       case (null) { Runtime.trap("Section not found") };
@@ -178,8 +296,8 @@ actor {
     };
   };
 
-  public shared ({ caller }) func deleteSection(id : Nat, adminToken : ?Text) : async () {
-    requireAdminToken(adminToken);
+  public shared ({ caller }) func deleteSection(id : Nat, adminToken : Text) : async () {
+    requireAdminAuth(adminToken);
 
     if (not sections.containsKey(id)) {
       Runtime.trap("Section not found");
@@ -187,8 +305,8 @@ actor {
     sections.remove(id);
   };
 
-  public shared ({ caller }) func addProduct(name : Text, description : Text, price : Nat, imageUrl : Text, adminToken : ?Text) : async () {
-    requireAdminToken(adminToken);
+  public shared ({ caller }) func addProduct(name : Text, description : Text, price : Nat, imageUrl : Text, adminToken : Text) : async () {
+    requireAdminAuth(adminToken);
 
     let id = nextId;
     let newProduct : Product = { id; name; description; price; imageUrl };
@@ -196,8 +314,8 @@ actor {
     nextId += 1;
   };
 
-  public shared ({ caller }) func updateProduct(id : Nat, name : Text, description : Text, price : Nat, imageUrl : Text, adminToken : ?Text) : async () {
-    requireAdminToken(adminToken);
+  public shared ({ caller }) func updateProduct(id : Nat, name : Text, description : Text, price : Nat, imageUrl : Text, adminToken : Text) : async () {
+    requireAdminAuth(adminToken);
 
     switch (products.get(id)) {
       case (null) { Runtime.trap("Product not found") };
@@ -208,8 +326,8 @@ actor {
     };
   };
 
-  public shared ({ caller }) func deleteProduct(id : Nat, adminToken : ?Text) : async () {
-    requireAdminToken(adminToken);
+  public shared ({ caller }) func deleteProduct(id : Nat, adminToken : Text) : async () {
+    requireAdminAuth(adminToken);
 
     if (not products.containsKey(id)) {
       Runtime.trap("Product not found");
@@ -217,8 +335,8 @@ actor {
     products.remove(id);
   };
 
-  public shared ({ caller }) func addGalleryItem(title : Text, caption : Text, imageUrl : Text, adminToken : ?Text) : async () {
-    requireAdminToken(adminToken);
+  public shared ({ caller }) func addGalleryItem(title : Text, caption : Text, imageUrl : Text, adminToken : Text) : async () {
+    requireAdminAuth(adminToken);
 
     let id = nextId;
     let newItem : GalleryItem = { id; title; caption; imageUrl };
@@ -226,8 +344,8 @@ actor {
     nextId += 1;
   };
 
-  public shared ({ caller }) func updateGalleryItem(id : Nat, title : Text, caption : Text, imageUrl : Text, adminToken : ?Text) : async () {
-    requireAdminToken(adminToken);
+  public shared ({ caller }) func updateGalleryItem(id : Nat, title : Text, caption : Text, imageUrl : Text, adminToken : Text) : async () {
+    requireAdminAuth(adminToken);
 
     switch (gallery.get(id)) {
       case (null) { Runtime.trap("Gallery item not found") };
@@ -238,8 +356,8 @@ actor {
     };
   };
 
-  public shared ({ caller }) func deleteGalleryItem(id : Nat, adminToken : ?Text) : async () {
-    requireAdminToken(adminToken);
+  public shared ({ caller }) func deleteGalleryItem(id : Nat, adminToken : Text) : async () {
+    requireAdminAuth(adminToken);
 
     if (not gallery.containsKey(id)) {
       Runtime.trap("Gallery item not found");
@@ -247,26 +365,26 @@ actor {
     gallery.remove(id);
   };
 
-  public shared ({ caller }) func updateContactInfo(address : Text, phone : Text, email : Text, adminToken : ?Text) : async () {
-    requireAdminToken(adminToken);
+  public shared ({ caller }) func updateContactInfo(address : Text, phone : Text, email : Text, adminToken : Text) : async () {
+    requireAdminAuth(adminToken);
 
     contactInfo := { address; phone; email };
   };
 
-  public shared ({ caller }) func updateSiteSettings(siteName : Text, logoUrl : Text, adminToken : ?Text) : async () {
-    requireAdminToken(adminToken);
+  public shared ({ caller }) func updateSiteSettings(siteName : Text, logoUrl : Text, adminToken : Text) : async () {
+    requireAdminAuth(adminToken);
 
     siteSettings := { siteName; logoUrl };
   };
 
-  public shared ({ caller }) func deleteMessage(id : Nat, adminToken : ?Text) : async () {
-    requireAdminToken(adminToken);
+  public shared ({ caller }) func deleteMessage(id : Nat, adminToken : Text) : async () {
+    requireAdminAuth(adminToken);
 
     messages.remove(id);
   };
 
-  public shared ({ caller }) func initializeContent(adminToken : ?Text) : async () {
-    requireAdminToken(adminToken);
+  public shared ({ caller }) func initializeContent(adminToken : Text) : async () {
+    requireAdminAuth(adminToken);
 
     // Initial content
     sections.add(
@@ -328,9 +446,8 @@ actor {
   };
 
   // Admin panel function - requires admin permission
-  // Changed to shared (update call) because query functions cannot reliably trap
-  public shared ({ caller }) func getMessages(adminToken : ?Text) : async [ContactMessage] {
-    requireAdminToken(adminToken);
+  public shared ({ caller }) func getMessages(adminToken : Text) : async [ContactMessage] {
+    requireAdminAuth(adminToken);
 
     messages.values().toArray();
   };

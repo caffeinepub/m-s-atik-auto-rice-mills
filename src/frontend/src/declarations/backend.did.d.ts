@@ -44,55 +44,51 @@ export type UserRole = { 'admin' : null } |
   { 'guest' : null };
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
-  'addGalleryItem' : ActorMethod<
-    [string, string, string, [] | [string]],
-    undefined
-  >,
+  'addAdminAccount' : ActorMethod<[string, string, string], undefined>,
+  'addGalleryItem' : ActorMethod<[string, string, string, string], undefined>,
   'addProduct' : ActorMethod<
-    [string, string, bigint, string, [] | [string]],
+    [string, string, bigint, string, string],
     undefined
   >,
   'adminLogin' : ActorMethod<[string, string], [] | [string]>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'createSection' : ActorMethod<[string, string, [] | [string]], undefined>,
-  'deleteGalleryItem' : ActorMethod<[bigint, [] | [string]], undefined>,
-  'deleteMessage' : ActorMethod<[bigint, [] | [string]], undefined>,
-  'deleteProduct' : ActorMethod<[bigint, [] | [string]], undefined>,
-  'deleteSection' : ActorMethod<[bigint, [] | [string]], undefined>,
+  'changeAdminPassword' : ActorMethod<[string, string], undefined>,
+  'changeOtherAdminPassword' : ActorMethod<[string, string, string], undefined>,
+  'createSection' : ActorMethod<[string, string, string], undefined>,
+  'deleteAdminAccount' : ActorMethod<[string, string], undefined>,
+  'deleteGalleryItem' : ActorMethod<[bigint, string], undefined>,
+  'deleteMessage' : ActorMethod<[bigint, string], undefined>,
+  'deleteProduct' : ActorMethod<[bigint, string], undefined>,
+  'deleteSection' : ActorMethod<[bigint, string], undefined>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getContactInfo' : ActorMethod<[], ContactInfo>,
   'getGallery' : ActorMethod<[], Array<GalleryItem>>,
-  'getMessages' : ActorMethod<[[] | [string]], Array<ContactMessage>>,
+  'getMessages' : ActorMethod<[string], Array<ContactMessage>>,
   'getProducts' : ActorMethod<[], Array<Product>>,
   'getSections' : ActorMethod<[], Array<Section>>,
   'getSiteSettings' : ActorMethod<[], SiteSettings>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'health' : ActorMethod<[], string>,
-  'initializeContent' : ActorMethod<[[] | [string]], undefined>,
+  'initializeContent' : ActorMethod<[string], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'listAdminAccounts' : ActorMethod<[string], Array<string>>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'sendMessage' : ActorMethod<[string, string, string], undefined>,
   'updateContactInfo' : ActorMethod<
-    [string, string, string, [] | [string]],
+    [string, string, string, string],
     undefined
   >,
   'updateGalleryItem' : ActorMethod<
-    [bigint, string, string, string, [] | [string]],
+    [bigint, string, string, string, string],
     undefined
   >,
   'updateProduct' : ActorMethod<
-    [bigint, string, string, bigint, string, [] | [string]],
+    [bigint, string, string, bigint, string, string],
     undefined
   >,
-  'updateSection' : ActorMethod<
-    [bigint, string, string, [] | [string]],
-    undefined
-  >,
-  'updateSiteSettings' : ActorMethod<
-    [string, string, [] | [string]],
-    undefined
-  >,
+  'updateSection' : ActorMethod<[bigint, string, string, string], undefined>,
+  'updateSiteSettings' : ActorMethod<[string, string, string], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

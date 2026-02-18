@@ -2,13 +2,14 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-restore-the-last-known-working-deployed-version-as-the-primary-production-version-so-the-site-is-usable-again-and-keep-the-currently-deployed-broken-version-accessible-separately-for-troubleshooting-do-not-replace-or-delete-the-previous-working-deployment",
-      "featureTitle": "Restore the last known working deployed version as the primary production version so the site is usable again, and keep the currently-deployed (broken) version accessible separately for troubleshooting (do not replace or delete the previous working deployment).",
+      "featureId": "feature-replace-the-placeholder-admin-pages-page-sections-products-gallery-contact-info-messages-so-they-no-longer-display-coming-soon-and-instead-provide-fully-working-crud-admin-functionality-backed-by-existing-canister-methods",
+      "featureTitle": "Replace the placeholder admin pages (Page Sections, Products, Gallery, Contact Info, Messages) so they no longer display 'coming soon' and instead provide fully working CRUD/admin functionality backed by existing canister methods.",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/BuildVersionLabel.tsx",
-        "frontend/src/utils/releaseChannel.ts",
-        "frontend/src/utils/routerBasePath.ts"
+        "frontend/src/admin/pages/ContactInfoEditor.tsx",
+        "frontend/src/admin/pages/GalleryEditor.tsx",
+        "frontend/src/admin/pages/MessagesInbox.tsx",
+        "frontend/src/admin/pages/ProductsEditor.tsx",
+        "frontend/src/admin/pages/SectionsEditor.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -19,18 +20,20 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-51"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-visible-build-version-identifier-to-the-frontend-ui-public-pages-and-admin-login-screen-so-testers-can-confirm-which-version-they-are-viewing-using-only-english-user-facing-text",
-      "featureTitle": "Add a visible build/version identifier to the frontend UI (public pages and admin login screen) so testers can confirm which version they are viewing, using only English user-facing text.",
+      "featureId": "feature-add-react-query-mutation-hooks-for-admin-content-management-sections-products-gallery-contact-info-messages-and-wire-them-into-the-corresponding-admin-editor-pages-including-query-invalidation-so-lists-refresh-after-changes",
+      "featureTitle": "Add React Query mutation hooks for admin content management (sections/products/gallery/contact info/messages) and wire them into the corresponding admin editor pages, including query invalidation so lists refresh after changes.",
       "files": [
-        "frontend/src/admin/AdminLogin.tsx",
-        "frontend/src/components/BuildVersionLabel.tsx",
-        "frontend/src/components/SiteFooter.tsx",
-        "frontend/src/utils/buildInfo.ts"
+        "frontend/src/admin/hooks/useAdminContentMutations.ts",
+        "frontend/src/admin/pages/ContactInfoEditor.tsx",
+        "frontend/src/admin/pages/GalleryEditor.tsx",
+        "frontend/src/admin/pages/MessagesInbox.tsx",
+        "frontend/src/admin/pages/ProductsEditor.tsx",
+        "frontend/src/admin/pages/SectionsEditor.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -41,17 +44,21 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-52"
+        "REQ-2"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-a-safer-release-flow-in-the-app-so-that-if-the-backend-is-unreachable-or-the-app-hits-a-fatal-runtime-error-during-startup-users-see-a-clear-english-error-screen-with-a-recovery-action-reload-try-again-rather-than-a-broken-blank-experience",
-      "featureTitle": "Implement a safer release flow in the app so that if the backend is unreachable or the app hits a fatal runtime error during startup, users see a clear English error screen with a recovery action (Reload / Try Again) rather than a broken/blank experience.",
+      "featureId": "feature-implement-basic-consistent-admin-editor-ux-for-each-page-list-view-with-empty-loading-error-states-an-add-action-edit-capability-and-a-delete-confirmation-flow-where-applicable",
+      "featureTitle": "Implement basic, consistent admin editor UX for each page: list view with empty/loading/error states, an 'Add' action, edit capability, and a delete confirmation flow (where applicable).",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/PublicAppErrorBoundary.tsx",
-        "frontend/src/components/StartupHealthGate.tsx"
+        "frontend/src/admin/components/AdminDeleteConfirmDialog.tsx",
+        "frontend/src/admin/components/AdminFormErrorAlert.tsx",
+        "frontend/src/admin/pages/ContactInfoEditor.tsx",
+        "frontend/src/admin/pages/GalleryEditor.tsx",
+        "frontend/src/admin/pages/MessagesInbox.tsx",
+        "frontend/src/admin/pages/ProductsEditor.tsx",
+        "frontend/src/admin/pages/SectionsEditor.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -62,7 +69,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-53"
+        "REQ-3"
       ],
       "confidence": "high"
     }

@@ -1,75 +1,93 @@
 {
   "kind": "build_request",
-  "title": "Restore working production version and add rollback safety",
-  "projectName": "Atik Auto Rice Mills",
-  "priority": "high",
+  "title": "Implement working admin editors for Sections, Products, Gallery, Contact Info, and Messages",
+  "projectName": "CMS Admin Panel",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-51",
-      "text": "Restore the last known working deployed version as the primary production version so the site is usable again, and keep the currently-deployed (broken) version accessible separately for troubleshooting (do not replace or delete the previous working deployment).",
-      "target": "unknown",
+      "id": "REQ-1",
+      "text": "Replace the placeholder admin pages (Page Sections, Products, Gallery, Contact Info, Messages) so they no longer display 'coming soon' and instead provide fully working CRUD/admin functionality backed by existing canister methods.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-4",
+          "msg-5"
         ],
         "quotes": [
-          "not working \n\nKeep previous version alive"
+          "Page Sections\nProducts\nGallery\nContact Info\nMessages\n\n\nthese option not working \nits says\nsection editor coming soon",
+          "another try?"
         ]
       },
       "acceptanceCriteria": [
-        "Production traffic serves the last known working version again (no blank screen / broken navigation regressions compared to that version).",
-        "The currently-deployed version remains accessible via a separate, clearly identified access path (e.g., a preview URL or versioned path), without impacting the restored production version.",
-        "No data/content stored in the backend is lost due to the rollback (CMS content, messages, settings remain intact)."
+        "Visiting /admin/sections no longer shows the placeholder text and provides a working UI to list, create, edit, and delete sections.",
+        "Visiting /admin/products no longer shows the placeholder text and provides a working UI to list, create, edit, and delete products (name, description, price, imageUrl).",
+        "Visiting /admin/gallery no longer shows the placeholder text and provides a working UI to list, create, edit, and delete gallery items (title, caption, imageUrl).",
+        "Visiting /admin/contact no longer shows the placeholder text and provides a working UI to view and update contact info (address, phone, email).",
+        "Visiting /admin/messages no longer shows the placeholder text and provides a working UI to list messages and delete a message.",
+        "All admin editor actions require and use the current admin session token (from existing admin session handling)."
       ]
     },
     {
-      "id": "REQ-52",
-      "text": "Add a visible build/version identifier to the frontend UI (public pages and admin login screen) so testers can confirm which version they are viewing, using only English user-facing text.",
+      "id": "REQ-2",
+      "text": "Add React Query mutation hooks for admin content management (sections/products/gallery/contact info/messages) and wire them into the corresponding admin editor pages, including query invalidation so lists refresh after changes.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-4"
         ],
         "quotes": [
-          "Keep previous version alive"
+          "these option not working \nits says\nsection editor coming soon"
         ]
       },
       "acceptanceCriteria": [
-        "Public pages display a small, non-intrusive version label (e.g., in the footer) indicating the build/version string.",
-        "Admin login screen displays the same build/version label.",
-        "The version label is present in production builds and can be used to distinguish the restored version from the broken one."
+        "There are mutation hooks available for: createSection, updateSection, deleteSection; addProduct, updateProduct, deleteProduct; addGalleryItem, updateGalleryItem, deleteGalleryItem; updateContactInfo; deleteMessage.",
+        "After a successful create/update/delete, the relevant query cache is invalidated and the UI updates without needing a full page reload.",
+        "If the admin token is missing/expired, the UI shows a user-facing error state consistent with existing admin error handling (no silent failures)."
       ]
     },
     {
-      "id": "REQ-53",
-      "text": "Implement a safer release flow in the app so that if the backend is unreachable or the app hits a fatal runtime error during startup, users see a clear English error screen with a recovery action (Reload / Try Again) rather than a broken/blank experience.",
+      "id": "REQ-3",
+      "text": "Implement basic, consistent admin editor UX for each page: list view with empty/loading/error states, an 'Add' action, edit capability, and a delete confirmation flow (where applicable).",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-4"
         ],
         "quotes": [
-          "not working"
+          "Page Sections\nProducts\nGallery\nContact Info\nMessages"
         ]
       },
       "acceptanceCriteria": [
-        "If the backend cannot be reached at load time, the app renders a user-friendly English error state with a working recovery action (Reload and/or Try Again).",
-        "If a runtime exception occurs during public route rendering, a user-friendly English error UI is shown instead of a blank/white screen.",
-        "Recovery actions do not cause infinite loading loops; they deterministically retry initialization and either recover or re-display the error state."
+        "Each editor page shows a loading state while fetching data and a clear empty state when there are no items.",
+        "Each editor page provides an Add flow (except Contact Info which is update-only).",
+        "Edit flows allow updating existing entries and saving changes.",
+        "Delete flows require user confirmation before the delete mutation runs.",
+        "Form validation prevents submitting empty required fields (e.g., section title/content; product name/description/imageUrl; gallery title/imageUrl; contact email/phone/address)."
       ]
     }
   ],
   "constraints": [
-    "Use English for any user-facing text.",
-    "Respect the existing single-actor Motoko backend architecture (no additional backend services).",
-    "Do not edit files under frontend/src/components/ui, frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, or frontend/src/main.tsx (compose instead)."
+    "Do not edit files under frontend/src/components/ui (Shadcn UI components are read-only and must be composed, not modified).",
+    "Do not edit the immutable hook files listed in SYSTEM_CONTEXT (compose around them instead).",
+    "Keep all backend logic in the single Motoko actor (backend/main.mo); only add backend changes if required to support the editors (expected to be minimal because CRUD methods already exist)."
   ],
   "nonGoals": [
-    "Adding new product features unrelated to restoring functionality and rollback safety.",
-    "Introducing external hosting, databases, or third-party deployment services."
+    "Implementing image uploads or file storage; imageUrl fields will remain URL/path text inputs.",
+    "Changing the existing admin authentication mechanism (username/password token flow).",
+    "Adding real-time updates (no websockets/live push)."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

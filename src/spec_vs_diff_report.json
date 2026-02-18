@@ -1,34 +1,65 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T12:26:12.361Z",
-  "summary": "REQ-52 and most of REQ-53 appear implemented via a shared BuildVersionLabel (shown in the public footer and admin login) plus startup/back-end connectivity gating and a public error boundary. REQ-51 (deployment rollback + keeping broken build accessible separately without data loss) is not evidenced in the diff summary.",
+  "generatedAt": "2026-02-18T11:18:39.275Z",
+  "summary": "The diff implements CRUD-capable admin editor pages for Sections, Products, Gallery, Contact Info, and Messages, adds shared UI components for delete confirmation and form errors, and introduces React Query mutation hooks with query invalidation. However, the diff does not clearly implement a user-facing error state when the admin token is missing/expired (pages often just early-return when `!token`). The diff also appears to add unrelated admin/auth/navigation features not requested in the BuildRequest.",
   "missing_requirements": [
     {
-      "id": "REQ-51",
-      "requirement": "Restore the last known working deployed version as the primary production version, and keep the currently-deployed (broken) version accessible separately for troubleshooting (without deleting/replacing the previous working deployment), ensuring no backend data loss.",
-      "reason": "The diff only shows frontend code changes (version label, health gate, error boundary, connectivity-aware UI/hooks). There is no evidence of deployment configuration/hosting changes, routing to serve two deployed versions (prod vs separate preview/versioned path), or any rollback mechanism that would switch production traffic back to a previous deployment while keeping the broken one accessible.",
+      "id": "REQ-2",
+      "requirement": "If the admin token is missing/expired, the UI shows a user-facing error state consistent with existing admin error handling (no silent failures).",
+      "reason": "In multiple editors, submit/delete handlers short-circuit when `!token` (e.g., `if (!validateForm() || !token) return;` and `if (!deleteConfirm || !token) return;`) without displaying any user-facing error/alert/toast for the missing token condition, which can result in silent failures.",
       "evidence": [
-        "frontend/src/utils/releaseChannel.ts",
-        "frontend/src/utils/routerBasePath.ts",
-        "frontend/src/App.tsx",
-        "frontend/src/components/BuildVersionLabel.tsx"
+        "frontend/src/admin/pages/SectionsEditor.tsx",
+        "frontend/src/admin/pages/ProductsEditor.tsx",
+        "frontend/src/admin/pages/GalleryEditor.tsx",
+        "frontend/src/admin/pages/ContactInfoEditor.tsx",
+        "frontend/src/admin/pages/MessagesInbox.tsx"
       ]
     }
   ],
-  "hallucinated_features": [],
-  "confidence": 0.74,
+  "hallucinated_features": [
+    {
+      "description": "Admin UI/navigation additions for Change Password and Admin Accounts pages/routes.",
+      "reason": "The BuildRequest only asked to implement editors for Sections/Products/Gallery/Contact Info/Messages; it did not request new admin pages for password change or admin account management.",
+      "evidence": [
+        "frontend/src/admin/AdminLayout.tsx",
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "description": "Changes to admin authentication flow/UI (e.g., refactoring login behavior and error handling beyond wiring token usage into editors).",
+      "reason": "The BuildRequest explicitly lists changing the existing admin authentication mechanism as a non-goal; yet the diff summary indicates significant changes to admin auth hooks/login behavior.",
+      "evidence": [
+        "frontend/src/admin/hooks/useAdminAuth.ts",
+        "frontend/src/admin/AdminLogin.tsx",
+        "frontend/src/admin/hooks/useAdminSession.ts"
+      ]
+    },
+    {
+      "description": "General site UI changes unrelated to admin editors (header/footer changes, logout hook changes, connectivity-aware error handling in public pages).",
+      "reason": "These changes are outside the scope of implementing admin editors and mutation hooks requested in REQ-1/REQ-2/REQ-3.",
+      "evidence": [
+        "frontend/src/hooks/useLogout.ts",
+        "frontend/src/components/HeaderNav.tsx",
+        "frontend/src/components/SiteFooter.tsx",
+        "frontend/src/pages/HomePage.tsx",
+        "frontend/src/pages/AboutPage.tsx",
+        "frontend/src/pages/GalleryPage.tsx",
+        "frontend/src/pages/ProductsPage.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.62,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/admin/AdminLogin.tsx",
-    "frontend/src/components/BuildVersionLabel.tsx",
-    "frontend/src/components/PublicAppErrorBoundary.tsx",
-    "frontend/src/components/SiteFooter.tsx",
-    "frontend/src/components/StartupHealthGate.tsx",
-    "frontend/src/utils/buildInfo.ts",
-    "frontend/src/utils/releaseChannel.ts",
-    "frontend/src/utils/routerBasePath.ts",
+    "frontend/src/admin/components/AdminDeleteConfirmDialog.tsx",
+    "frontend/src/admin/components/AdminFormErrorAlert.tsx",
+    "frontend/src/admin/hooks/useAdminContentMutations.ts",
+    "frontend/src/admin/pages/ContactInfoEditor.tsx",
+    "frontend/src/admin/pages/GalleryEditor.tsx",
+    "frontend/src/admin/pages/MessagesInbox.tsx",
+    "frontend/src/admin/pages/ProductsEditor.tsx",
+    "frontend/src/admin/pages/SectionsEditor.tsx",
     "project_state.json"
   ]
 }

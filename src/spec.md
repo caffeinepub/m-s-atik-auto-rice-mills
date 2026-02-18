@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Restore the last known working deployed version as the primary production experience, keep the currently deployed broken version accessible for troubleshooting, and add rollback safety signals and error handling so users never see a blank/broken screen.
+**Goal:** Replace the “coming soon” admin placeholders with working CRUD editors for Sections, Products, Gallery, Contact Info, and Messages using existing canister methods and the current admin session token flow.
 
 **Planned changes:**
-- Roll production back to the last known working deployment while preserving the currently deployed (broken) version as a separately accessible path for troubleshooting.
-- Add a small, non-intrusive build/version identifier on all public pages (e.g., footer) and on the admin login screen, using English text.
-- Add frontend startup and runtime safety handling: show a clear English error screen when the backend is unreachable or a fatal runtime error occurs, with a deterministic recovery action (Reload / Try Again).
+- Implement functional admin pages for /admin/sections, /admin/products, /admin/gallery, /admin/contact, and /admin/messages (list/create/edit/delete as applicable).
+- Add React Query mutation hooks for admin content management (sections/products/gallery/contact info/messages) and wire them into the admin pages with cache invalidation after successful mutations.
+- Add consistent admin UX across editors: loading/empty/error states, add/edit forms, delete confirmation flows, and basic required-field validation; show a user-facing error when the admin token is missing/expired.
 
-**User-visible outcome:** The site loads normally again in production, testers can verify which version they’re viewing via a visible version label, the broken build remains reachable via a separate access path for debugging, and users see a clear recoverable error screen instead of a blank page if startup fails.
+**User-visible outcome:** Admin users can manage sections, products, gallery items, contact info, and messages from their respective /admin pages (no more placeholder text), with updates reflected immediately after changes.

@@ -1,93 +1,133 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Restore usability with rollback safety UX, version labeling, and resilient startup",
+  "title": "Working CRUD Admin Editors for Sections, Products, Gallery, Contact Info, and Messages",
   "requirements": [
     {
-      "id": "REQ-51",
-      "summary": "Enable safe side-by-side access paths for restored production and broken build via configurable base path and clearly identified preview mode UI hints.",
+      "id": "REQ-1",
+      "summary": "Replace placeholder admin editor pages with working CRUD UIs backed by existing canister methods and the current admin session token.",
       "acceptanceCriteria": [
-        "Production traffic serves the last known working version again (no blank screen / broken navigation regressions compared to that version).",
-        "The currently-deployed version remains accessible via a separate, clearly identified access path (e.g., a preview URL or versioned path), without impacting the restored production version.",
-        "No data/content stored in the backend is lost due to the rollback (CMS content, messages, settings remain intact)."
+        "Visiting /admin/sections no longer shows the placeholder text and provides a working UI to list, create, edit, and delete sections.",
+        "Visiting /admin/products no longer shows the placeholder text and provides a working UI to list, create, edit, and delete products (name, description, price, imageUrl).",
+        "Visiting /admin/gallery no longer shows the placeholder text and provides a working UI to list, create, edit, and delete gallery items (title, caption, imageUrl).",
+        "Visiting /admin/contact no longer shows the placeholder text and provides a working UI to view and update contact info (address, phone, email).",
+        "Visiting /admin/messages no longer shows the placeholder text and provides a working UI to list messages and delete a message.",
+        "All admin editor actions require and use the current admin session token (from existing admin session handling)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/utils/releaseChannel.ts",
-          "operation": "create",
-          "description": "Add a small utility to derive an app release channel (e.g., production vs preview) and an optional preview identifier from build-time variables and/or URL hints, to support distinct access paths while sharing the same backend data."
-        },
-        {
-          "path": "frontend/src/utils/routerBasePath.ts",
-          "operation": "create",
-          "description": "Add a utility that derives a router base path from runtime location (and/or build-time configuration) to allow the app to be served under a versioned/preview path without breaking internal navigation."
-        },
-        {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/admin/pages/SectionsEditor.tsx",
           "operation": "modify",
-          "description": "Wire configurable base path support into the TanStack router creation so the same frontend can run correctly under a production root path and an alternate preview/versioned path. Ensure the preview channel can be clearly identified in the UI (paired with the version label work)."
+          "description": "Replace the placeholder with a working Sections CRUD editor: fetch list via existing query hook, add/edit forms, delete confirmation, and ensure create/update/delete calls use the admin token from useAdminSession. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/BuildVersionLabel.tsx",
+          "path": "frontend/src/admin/pages/ProductsEditor.tsx",
           "operation": "modify",
-          "description": "Extend the version label component (added in REQ-52) to optionally display a non-intrusive preview indicator when the release channel is not production. Use the shadcn-ui Badge component for consistent styling. Verify the component's usage instructions before implementing."
+          "description": "Replace the placeholder with a working Products CRUD editor (name/description/price/imageUrl): list view, add/edit forms with BigInt price handling, and delete confirmation; all mutations must use the admin token from useAdminSession. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/GalleryEditor.tsx",
+          "operation": "modify",
+          "description": "Replace the placeholder with a working Gallery CRUD editor (title/caption/imageUrl): list view, add/edit forms, and delete confirmation; all mutations must use the admin token from useAdminSession. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/ContactInfoEditor.tsx",
+          "operation": "modify",
+          "description": "Replace the placeholder with a working Contact Info editor: load existing contact info and provide an update-only form (address/phone/email) that uses the admin token from useAdminSession. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/MessagesInbox.tsx",
+          "operation": "modify",
+          "description": "Replace the placeholder with a working Messages inbox: list messages using the admin token and allow deleting a message with confirmation; delete must use the admin token from useAdminSession. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-52",
-      "summary": "Display a visible build/version identifier on public pages and the admin login screen (English only).",
+      "id": "REQ-2",
+      "summary": "Add React Query mutation hooks for admin content management and wire them into admin editor pages with query invalidation and session-token-aware errors.",
       "acceptanceCriteria": [
-        "Public pages display a small, non-intrusive version label (e.g., in the footer) indicating the build/version string.",
-        "Admin login screen displays the same build/version label.",
-        "The version label is present in production builds and can be used to distinguish the restored version from the broken one."
+        "There are mutation hooks available for: createSection, updateSection, deleteSection; addProduct, updateProduct, deleteProduct; addGalleryItem, updateGalleryItem, deleteGalleryItem; updateContactInfo; deleteMessage.",
+        "After a successful create/update/delete, the relevant query cache is invalidated and the UI updates without needing a full page reload.",
+        "If the admin token is missing/expired, the UI shows a user-facing error state consistent with existing admin error handling (no silent failures)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/utils/buildInfo.ts",
+          "path": "frontend/src/admin/hooks/useAdminContentMutations.ts",
           "operation": "create",
-          "description": "Implement a single source of truth for the app build/version string (read from build-time variables with safe fallbacks) to be consumed by UI surfaces."
+          "description": "Create React Query mutation hooks for admin content management backed by existing actor methods: createSection/updateSection/deleteSection, addProduct/updateProduct/deleteProduct, addGalleryItem/updateGalleryItem/deleteGalleryItem, updateContactInfo, deleteMessage. Each mutation must require an adminToken input, normalize errors consistently (including unauthorized/expired token using existing admin error utilities), and invalidate the relevant queries (sections/products/gallery/contactInfo/messages)."
         },
         {
-          "path": "frontend/src/components/BuildVersionLabel.tsx",
-          "operation": "create",
-          "description": "Create a small, non-intrusive version label component that renders the build/version string in English. Use shadcn-ui Badge (or similarly minimal shadcn-ui primitives) to keep it unobtrusive. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/SiteFooter.tsx",
+          "path": "frontend/src/admin/pages/SectionsEditor.tsx",
           "operation": "modify",
-          "description": "Render the BuildVersionLabel in the public footer so it appears on all public pages without affecting layout (keep it small and non-intrusive)."
+          "description": "Wire the new admin mutation hooks into the Sections editor page, including query invalidation-driven refresh after create/update/delete and a clear user-facing error when the admin token is missing/expired. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/admin/AdminLogin.tsx",
+          "path": "frontend/src/admin/pages/ProductsEditor.tsx",
           "operation": "modify",
-          "description": "Render the BuildVersionLabel on the admin login screen (e.g., beneath the form) using English-only text."
+          "description": "Wire the new admin mutation hooks into the Products editor page, including query invalidation-driven refresh after add/update/delete and a clear user-facing error when the admin token is missing/expired. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/GalleryEditor.tsx",
+          "operation": "modify",
+          "description": "Wire the new admin mutation hooks into the Gallery editor page, including query invalidation-driven refresh after add/update/delete and a clear user-facing error when the admin token is missing/expired. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/ContactInfoEditor.tsx",
+          "operation": "modify",
+          "description": "Wire the new updateContactInfo mutation hook into the Contact Info editor page, including query invalidation-driven refresh after save and a clear user-facing error when the admin token is missing/expired. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/MessagesInbox.tsx",
+          "operation": "modify",
+          "description": "Wire the new deleteMessage mutation hook into the Messages inbox page, including query invalidation-driven refresh after delete and a clear user-facing error when the admin token is missing/expired. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-53",
-      "summary": "Add a startup-safe release flow: show a clear English error screen with deterministic recovery when backend is unreachable or a fatal runtime error occurs.",
+      "id": "REQ-3",
+      "summary": "Implement consistent admin editor UX across pages: list with loading/empty/error states, Add and Edit flows, delete confirmation, and basic form validation.",
       "acceptanceCriteria": [
-        "If the backend cannot be reached at load time, the app renders a user-friendly English error state with a working recovery action (Reload and/or Try Again).",
-        "If a runtime exception occurs during public route rendering, a user-friendly English error UI is shown instead of a blank/white screen.",
-        "Recovery actions do not cause infinite loading loops; they deterministically retry initialization and either recover or re-display the error state."
+        "Each editor page shows a loading state while fetching data and a clear empty state when there are no items.",
+        "Each editor page provides an Add flow (except Contact Info which is update-only).",
+        "Edit flows allow updating existing entries and saving changes.",
+        "Delete flows require user confirmation before the delete mutation runs.",
+        "Form validation prevents submitting empty required fields (e.g., section title/content; product name/description/imageUrl; gallery title/imageUrl; contact email/phone/address)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/StartupHealthGate.tsx",
+          "path": "frontend/src/admin/components/AdminDeleteConfirmDialog.tsx",
           "operation": "create",
-          "description": "Create a gate component that performs a backend reachability check at startup (using the existing backend health hook) and shows a full-screen English error UI with deterministic recovery actions (Try Again triggers a single refetch; Reload performs a hard reload). Use existing shadcn-ui components for consistent UI. Verify the component's usage instructions before implementing."
+          "description": "Add a reusable admin-only delete confirmation wrapper (composing existing shadcn/ui AlertDialog) to standardize confirmation UX across editors. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Wrap the router rendering with StartupHealthGate so the app never shows a blank/broken screen on initial backend unreachability, and retries are user-driven (no infinite loops)."
+          "path": "frontend/src/admin/components/AdminFormErrorAlert.tsx",
+          "operation": "create",
+          "description": "Add a small reusable form error alert/panel component (composing existing shadcn/ui Alert) to standardize validation + mutation error display across admin editor pages. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/PublicAppErrorBoundary.tsx",
+          "path": "frontend/src/admin/pages/SectionsEditor.tsx",
           "operation": "modify",
-          "description": "Ensure the public error boundary recovery actions are deterministic and remain English-only; align button labels and navigation behavior with the startup gate (Reload/Try Again style) to avoid white-screen failures during public route rendering."
+          "description": "Implement consistent UX: list view using LoadingState/ErrorState/EmptyState, Add section form with required-field validation, inline or modal edit flow, and delete confirmation using the shared confirmation component. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/ProductsEditor.tsx",
+          "operation": "modify",
+          "description": "Implement consistent UX: list view using LoadingState/ErrorState/EmptyState, Add product form with required-field + numeric price validation, edit flow, and delete confirmation using the shared confirmation component. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/GalleryEditor.tsx",
+          "operation": "modify",
+          "description": "Implement consistent UX: list view using LoadingState/ErrorState/EmptyState, Add gallery item form with required-field validation, edit flow, and delete confirmation using the shared confirmation component. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/ContactInfoEditor.tsx",
+          "operation": "modify",
+          "description": "Implement consistent UX: loading/error states when fetching, update-only form with required-field validation (email/phone/address), and consistent success/error feedback when saving. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/MessagesInbox.tsx",
+          "operation": "modify",
+          "description": "Implement consistent UX: loading/error/empty states for message list and delete confirmation flow for removing a message, with clear user-facing mutation errors. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
         }
       ]
     }

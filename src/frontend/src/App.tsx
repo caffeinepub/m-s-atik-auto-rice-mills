@@ -16,6 +16,8 @@ import ProductsEditor from './admin/pages/ProductsEditor';
 import GalleryEditor from './admin/pages/GalleryEditor';
 import ContactInfoEditor from './admin/pages/ContactInfoEditor';
 import MessagesInbox from './admin/pages/MessagesInbox';
+import ChangePasswordPage from './admin/pages/ChangePasswordPage';
+import AdminAccountsPage from './admin/pages/AdminAccountsPage';
 import AdminNotFound from './admin/pages/AdminNotFound';
 import HeaderNav from './components/HeaderNav';
 import SiteFooter from './components/SiteFooter';
@@ -154,6 +156,18 @@ const adminMessagesRoute = createRoute({
   component: MessagesInbox,
 });
 
+const adminPasswordRoute = createRoute({
+  getParentRoute: () => adminRoute,
+  path: '/password',
+  component: ChangePasswordPage,
+});
+
+const adminAccountsRoute = createRoute({
+  getParentRoute: () => adminRoute,
+  path: '/admins',
+  component: AdminAccountsPage,
+});
+
 // Admin catch-all for unknown admin routes
 const adminNotFoundRoute = createRoute({
   getParentRoute: () => adminRoute,
@@ -180,6 +194,8 @@ const routeTree = rootRoute.addChildren([
     adminGalleryRoute,
     adminContactRoute,
     adminMessagesRoute,
+    adminPasswordRoute,
+    adminAccountsRoute,
     adminNotFoundRoute,
   ]),
 ]);

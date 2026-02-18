@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T12:26:12.365Z",
+  "generatedAt": "2026-02-18T11:18:39.278Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,52 +11,66 @@
     "implemented": 3,
     "items": [
       {
-        "id": "REQ-51",
-        "summary": "Restore the last known working deployed version as the primary production version so the site is usable again, and keep the currently-deployed (broken) version accessible separately for troubleshooting (do not replace or delete the previous working deployment).",
+        "id": "REQ-1",
+        "summary": "Replace the placeholder admin pages (Page Sections, Products, Gallery, Contact Info, Messages) so they no longer display 'coming soon' and instead provide fully working CRUD/admin functionality backed by existing canister methods.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/utils/releaseChannel.ts",
-          "frontend/src/utils/routerBasePath.ts",
-          "frontend/src/App.tsx",
-          "frontend/src/components/BuildVersionLabel.tsx"
+          "frontend/src/admin/pages/SectionsEditor.tsx",
+          "frontend/src/admin/pages/ProductsEditor.tsx",
+          "frontend/src/admin/pages/GalleryEditor.tsx",
+          "frontend/src/admin/pages/ContactInfoEditor.tsx",
+          "frontend/src/admin/pages/MessagesInbox.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/utils/releaseChannel.ts",
-          "frontend/src/utils/routerBasePath.ts",
-          "frontend/src/App.tsx",
-          "frontend/src/components/BuildVersionLabel.tsx"
+          "frontend/src/admin/pages/SectionsEditor.tsx",
+          "frontend/src/admin/pages/ProductsEditor.tsx",
+          "frontend/src/admin/pages/GalleryEditor.tsx",
+          "frontend/src/admin/pages/ContactInfoEditor.tsx",
+          "frontend/src/admin/pages/MessagesInbox.tsx"
         ]
       },
       {
-        "id": "REQ-52",
-        "summary": "Add a visible build/version identifier to the frontend UI (public pages and admin login screen) so testers can confirm which version they are viewing, using only English user-facing text.",
+        "id": "REQ-2",
+        "summary": "Add React Query mutation hooks for admin content management (sections/products/gallery/contact info/messages) and wire them into the corresponding admin editor pages, including query invalidation so lists refresh after changes.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/utils/buildInfo.ts",
-          "frontend/src/components/BuildVersionLabel.tsx",
-          "frontend/src/components/SiteFooter.tsx",
-          "frontend/src/admin/AdminLogin.tsx"
+          "frontend/src/admin/hooks/useAdminContentMutations.ts",
+          "frontend/src/admin/pages/SectionsEditor.tsx",
+          "frontend/src/admin/pages/ProductsEditor.tsx",
+          "frontend/src/admin/pages/GalleryEditor.tsx",
+          "frontend/src/admin/pages/ContactInfoEditor.tsx",
+          "frontend/src/admin/pages/MessagesInbox.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/utils/buildInfo.ts",
-          "frontend/src/components/BuildVersionLabel.tsx",
-          "frontend/src/components/SiteFooter.tsx",
-          "frontend/src/admin/AdminLogin.tsx"
+          "frontend/src/admin/hooks/useAdminContentMutations.ts",
+          "frontend/src/admin/pages/SectionsEditor.tsx",
+          "frontend/src/admin/pages/ProductsEditor.tsx",
+          "frontend/src/admin/pages/GalleryEditor.tsx",
+          "frontend/src/admin/pages/ContactInfoEditor.tsx",
+          "frontend/src/admin/pages/MessagesInbox.tsx"
         ]
       },
       {
-        "id": "REQ-53",
-        "summary": "Implement a safer release flow in the app so that if the backend is unreachable or the app hits a fatal runtime error during startup, users see a clear English error screen with a recovery action (Reload / Try Again) rather than a broken/blank experience.",
+        "id": "REQ-3",
+        "summary": "Implement basic, consistent admin editor UX for each page: list view with empty/loading/error states, an 'Add' action, edit capability, and a delete confirmation flow (where applicable).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/StartupHealthGate.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/components/PublicAppErrorBoundary.tsx"
+          "frontend/src/admin/components/AdminDeleteConfirmDialog.tsx",
+          "frontend/src/admin/components/AdminFormErrorAlert.tsx",
+          "frontend/src/admin/pages/SectionsEditor.tsx",
+          "frontend/src/admin/pages/ProductsEditor.tsx",
+          "frontend/src/admin/pages/GalleryEditor.tsx",
+          "frontend/src/admin/pages/ContactInfoEditor.tsx",
+          "frontend/src/admin/pages/MessagesInbox.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/StartupHealthGate.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/components/PublicAppErrorBoundary.tsx"
+          "frontend/src/admin/components/AdminDeleteConfirmDialog.tsx",
+          "frontend/src/admin/components/AdminFormErrorAlert.tsx",
+          "frontend/src/admin/pages/SectionsEditor.tsx",
+          "frontend/src/admin/pages/ProductsEditor.tsx",
+          "frontend/src/admin/pages/GalleryEditor.tsx",
+          "frontend/src/admin/pages/ContactInfoEditor.tsx",
+          "frontend/src/admin/pages/MessagesInbox.tsx"
         ]
       }
     ]
@@ -66,15 +80,14 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/admin/AdminLogin.tsx",
-    "frontend/src/components/BuildVersionLabel.tsx",
-    "frontend/src/components/PublicAppErrorBoundary.tsx",
-    "frontend/src/components/SiteFooter.tsx",
-    "frontend/src/components/StartupHealthGate.tsx",
-    "frontend/src/utils/buildInfo.ts",
-    "frontend/src/utils/releaseChannel.ts",
-    "frontend/src/utils/routerBasePath.ts",
+    "frontend/src/admin/components/AdminDeleteConfirmDialog.tsx",
+    "frontend/src/admin/components/AdminFormErrorAlert.tsx",
+    "frontend/src/admin/hooks/useAdminContentMutations.ts",
+    "frontend/src/admin/pages/ContactInfoEditor.tsx",
+    "frontend/src/admin/pages/GalleryEditor.tsx",
+    "frontend/src/admin/pages/MessagesInbox.tsx",
+    "frontend/src/admin/pages/ProductsEditor.tsx",
+    "frontend/src/admin/pages/SectionsEditor.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
