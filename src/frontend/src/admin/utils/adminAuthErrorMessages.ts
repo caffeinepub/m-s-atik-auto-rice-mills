@@ -6,10 +6,10 @@ import { ReplicaRejectionDetails } from './replicaRejection';
 
 export const ADMIN_AUTH_ERRORS = {
   CANISTER_STOPPED: 'The admin backend is temporarily unavailable. The service may be stopped or under maintenance. Please try again later.',
+  BACKEND_UNAVAILABLE: 'The admin backend is temporarily unavailable. Please try again later.',
   INVALID_CREDENTIALS: 'Invalid username or password. Please check your credentials and try again.',
   SESSION_EXPIRED: 'Your session has expired. Please log in again.',
   SESSION_INVALID: 'Your session is invalid. Please log in again.',
-  BACKEND_UNAVAILABLE: 'The admin backend is temporarily unavailable. Please try again later.',
   GENERIC_ERROR: 'An error occurred. Please try again.',
 } as const;
 
@@ -25,6 +25,11 @@ export function getAuthErrorMessage(
     return ADMIN_AUTH_ERRORS.CANISTER_STOPPED;
   }
 
+  // General connectivity failure
+  if (details.isConnectivityFailure) {
+    return ADMIN_AUTH_ERRORS.BACKEND_UNAVAILABLE;
+  }
+
   // For validation context, distinguish between expired/invalid
   if (context === 'validation') {
     return ADMIN_AUTH_ERRORS.SESSION_EXPIRED;
@@ -36,8 +41,8 @@ export function getAuthErrorMessage(
 
 /**
  * Determines if an error should preserve the stored admin token.
- * Returns true for temporary backend issues (IC0508), false for auth failures.
+ * Returns true for temporary backend issues (IC0508, connectivity failures), false for auth failures.
  */
 export function shouldPreserveToken(details: ReplicaRejectionDetails): boolean {
-  return details.isCanisterStopped;
+  return details.isCanisterStopped || details.isConnectivityFailure;
 }

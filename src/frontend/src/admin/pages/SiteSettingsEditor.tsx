@@ -1,107 +1,97 @@
-import { useForm } from 'react-hook-form';
-import { useGetSiteSettings, useUpdateSiteSettings } from '../../hooks/useQueries';
+import { useState } from 'react';
+import { useGetSiteSettings, useSaveSiteSettings } from '../../hooks/useQueries';
+import { useAdminSession } from '../hooks/useAdminSession';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import { Loader2, ExternalLink } from 'lucide-react';
 import { LoadingState, ErrorState } from '../../components/QueryState';
-import { Link } from '@tanstack/react-router';
-
-interface SiteSettingsForm {
-  siteName: string;
-  logoUrl: string;
-}
+import { Settings, Save } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function SiteSettingsEditor() {
-  const { data: settings, isLoading, error, refetch } = useGetSiteSettings();
-  const updateSettings = useUpdateSiteSettings();
+  const { token } = useAdminSession();
+  const { data: settings, isLoading, error } = useGetSiteSettings();
+  const saveMutation = useSaveSiteSettings();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<SiteSettingsForm>({
-    values: settings ? {
-      siteName: settings.siteName,
-      logoUrl: settings.logoUrl,
-    } : undefined,
+  const [siteName, setSiteName] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
+
+  // Initialize form when settings load
+  useState(() => {
+    if (settings) {
+      setSiteName(settings.siteName);
+      setLogoUrl(settings.logoUrl);
+    }
   });
 
-  if (isLoading) {
-    return <LoadingState message="Loading settings..." />;
-  }
-
-  if (error) {
-    return <ErrorState message="Failed to load settings" onRetry={() => refetch()} />;
-  }
-
-  const onSubmit = async (data: SiteSettingsForm) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     try {
-      await updateSettings.mutateAsync(data);
-      toast.success('Settings updated successfully!');
-    } catch (error) {
-      toast.error('Failed to update settings. Please try again.');
+      await saveMutation.mutateAsync({
+        siteName,
+        logoUrl,
+        adminToken: token,
+      });
+      toast.success('Site settings saved successfully');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save site settings');
     }
   };
 
+  if (isLoading) {
+    return <LoadingState message="Loading site settings..." />;
+  }
+
+  if (error) {
+    return <ErrorState message="Failed to load site settings" />;
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Site Settings</h1>
-          <p className="text-muted-foreground">
-            Manage your website's global settings and branding.
-          </p>
-        </div>
-        <Link to="/">
-          <Button variant="outline" size="sm">
-            <ExternalLink className="mr-2 h-4 w-4" />
-            View Site
-          </Button>
-        </Link>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <Settings className="h-8 w-8" />
+          Site Settings
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Configure your website's basic information
+        </p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>General Settings</CardTitle>
-          <CardDescription>
-            Update your site name and logo URL.
-          </CardDescription>
+          <CardDescription>Update your site name and logo</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="siteName">Site Name</Label>
               <Input
                 id="siteName"
-                {...register('siteName', { required: 'Site name is required' })}
-                placeholder="M/S Atik Auto Rice Mills"
-                className={errors.siteName ? 'border-destructive' : ''}
+                value={siteName}
+                onChange={(e) => setSiteName(e.target.value)}
+                placeholder="Enter site name"
+                required
               />
-              {errors.siteName && (
-                <p className="text-sm text-destructive">{errors.siteName.message}</p>
-              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="logoUrl">Logo URL</Label>
               <Input
                 id="logoUrl"
-                {...register('logoUrl')}
-                placeholder="/assets/generated/atik-logo.dim_512x512.png"
+                value={logoUrl}
+                onChange={(e) => setLogoUrl(e.target.value)}
+                placeholder="Enter logo URL"
+                required
               />
-              <p className="text-xs text-muted-foreground">
-                Leave as default to use the generated logo, or provide a custom URL.
-              </p>
             </div>
 
-            <Button type="submit" disabled={updateSettings.isPending}>
-              {updateSettings.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Changes'
-              )}
+            <Button type="submit" disabled={saveMutation.isPending} className="gap-2">
+              <Save className="h-4 w-4" />
+              {saveMutation.isPending ? 'Saving...' : 'Save Settings'}
             </Button>
           </form>
         </CardContent>

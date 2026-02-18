@@ -1,7 +1,9 @@
 import { useGetContactInfo } from '../hooks/useQueries';
-import { LoadingState, ErrorState } from '../components/QueryState';
+import { LoadingState } from '../components/QueryState';
+import BackendUnavailableState from '../components/BackendUnavailableState';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import ContactForm from '../components/ContactForm';
+import { isConnectivityError } from '../utils/queryTimeout';
 
 export default function ContactPage() {
   const { data: contactInfo, isLoading, error, refetch } = useGetContactInfo();
@@ -10,12 +12,12 @@ export default function ContactPage() {
     return <LoadingState message="Loading contact information..." />;
   }
 
-  if (error) {
+  if (error && isConnectivityError(error)) {
     return (
       <div className="py-16 md:py-24">
         <div className="container">
           <h1 className="text-4xl md:text-5xl font-bold mb-12">Contact Us</h1>
-          <ErrorState message="Failed to load contact information" onRetry={() => refetch()} />
+          <BackendUnavailableState onRetry={() => refetch()} />
         </div>
       </div>
     );

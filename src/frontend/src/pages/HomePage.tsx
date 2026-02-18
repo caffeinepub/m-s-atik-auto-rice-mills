@@ -1,19 +1,49 @@
 import { useGetSiteSettings, useGetSections } from '../hooks/useQueries';
-import { LoadingState, ErrorState, EmptyState } from '../components/QueryState';
+import { LoadingState } from '../components/QueryState';
+import BackendUnavailableState from '../components/BackendUnavailableState';
 import { Button } from '@/components/ui/button';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, Award, Leaf, Truck } from 'lucide-react';
+import { isConnectivityError } from '../utils/queryTimeout';
+import { useState } from 'react';
 
 export default function HomePage() {
-  const { data: siteSettings, isLoading: settingsLoading, error: settingsError } = useGetSiteSettings();
-  const { data: sections, isLoading: sectionsLoading, error: sectionsError } = useGetSections();
+  const { 
+    data: siteSettings, 
+    isLoading: settingsLoading, 
+    error: settingsError,
+    refetch: refetchSettings 
+  } = useGetSiteSettings();
+  
+  const { 
+    data: sections, 
+    isLoading: sectionsLoading, 
+    error: sectionsError,
+    refetch: refetchSections 
+  } = useGetSections();
 
-  if (settingsLoading || sectionsLoading) {
+  const [patternImageError, setPatternImageError] = useState(false);
+  const [heroImageError, setHeroImageError] = useState(false);
+
+  const isLoading = settingsLoading || sectionsLoading;
+  const hasError = settingsError || sectionsError;
+  const isConnError = hasError && (isConnectivityError(settingsError) || isConnectivityError(sectionsError));
+
+  // Handle loading state
+  if (isLoading) {
     return <LoadingState message="Loading content..." />;
   }
 
-  if (settingsError || sectionsError) {
-    return <ErrorState message="Failed to load page content" />;
+  // Handle connectivity error with BackendUnavailableState
+  if (isConnError) {
+    return (
+      <BackendUnavailableState
+        onRetry={() => {
+          refetchSettings();
+          refetchSections();
+        }}
+      />
+    );
   }
 
   const heroSection = sections?.find((s) => s.title.toLowerCase().includes('hero') || s.title.toLowerCase().includes('welcome'));
@@ -22,13 +52,16 @@ export default function HomePage() {
     <div className="flex flex-col">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary/5 via-background to-accent/5 overflow-hidden">
-        <div className="absolute inset-0 opacity-5">
-          <img
-            src="/assets/generated/rice-pattern.dim_1024x1024.png"
-            alt=""
-            className="w-full h-full object-cover"
-          />
-        </div>
+        {!patternImageError && (
+          <div className="absolute inset-0 opacity-5">
+            <img
+              src="/assets/generated/rice-pattern.dim_1024x1024.png"
+              alt=""
+              className="w-full h-full object-cover"
+              onError={() => setPatternImageError(true)}
+            />
+          </div>
+        )}
         <div className="container relative py-20 md:py-32">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
@@ -51,13 +84,16 @@ export default function HomePage() {
                 </Link>
               </div>
             </div>
-            <div className="relative">
-              <img
-                src="/assets/generated/hero-rice-mill.dim_1600x900.png"
-                alt="Rice Mill"
-                className="rounded-lg shadow-2xl w-full"
-              />
-            </div>
+            {!heroImageError && (
+              <div className="relative">
+                <img
+                  src="/assets/generated/hero-rice-mill.dim_1600x900.png"
+                  alt="Rice Mill"
+                  className="rounded-lg shadow-2xl w-full"
+                  onError={() => setHeroImageError(true)}
+                />
+              </div>
+            )}
           </div>
         </div>
       </section>

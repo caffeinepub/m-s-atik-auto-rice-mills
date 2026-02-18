@@ -68,6 +68,7 @@ export interface _SERVICE {
   'getSections' : ActorMethod<[], Array<Section>>,
   'getSiteSettings' : ActorMethod<[], SiteSettings>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'health' : ActorMethod<[], string>,
   'initializeContent' : ActorMethod<[[] | [string]], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,

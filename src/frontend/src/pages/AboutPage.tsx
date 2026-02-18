@@ -1,5 +1,7 @@
 import { useGetSections } from '../hooks/useQueries';
-import { LoadingState, ErrorState, EmptyState } from '../components/QueryState';
+import { LoadingState, EmptyState } from '../components/QueryState';
+import BackendUnavailableState from '../components/BackendUnavailableState';
+import { isConnectivityError } from '../utils/queryTimeout';
 
 export default function AboutPage() {
   const { data: sections, isLoading, error, refetch } = useGetSections();
@@ -8,8 +10,15 @@ export default function AboutPage() {
     return <LoadingState message="Loading about content..." />;
   }
 
-  if (error) {
-    return <ErrorState message="Failed to load about content" onRetry={() => refetch()} />;
+  if (error && isConnectivityError(error)) {
+    return (
+      <div className="py-16 md:py-24">
+        <div className="container">
+          <h1 className="text-4xl md:text-5xl font-bold mb-8">About Us</h1>
+          <BackendUnavailableState onRetry={() => refetch()} />
+        </div>
+      </div>
+    );
   }
 
   const aboutSections = sections?.filter((s) => 

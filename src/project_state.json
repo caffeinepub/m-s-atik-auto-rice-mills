@@ -1,12 +1,13 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 17,
+  "projectStateVersion": 29,
   "summary": "Website project for M/S Atik Auto Rice Mills: build a unique modern website using www.atikautoricemills.com as a reference/source of information, and include an admin panel (CMS) to edit/modify all site content.",
   "architectural_notes": [
     "Content should be manageable via an admin panel (CMS) with ability to edit/modify all site content.",
     "Decision: if no admin is configured in the canister, the first Internet Identity principal to log in will be auto-assigned as admin (bootstrap admin).",
     "Add an explicit Logout action in the frontend that ends the Internet Identity session (e.g., via useInternetIdentity().logout()) so users can re-authenticate and trigger first-login admin bootstrap when applicable.",
-    "Requested change: replace/admin panel login mechanism with a basic username/password credential (admin/admin) instead of Internet Identity."
+    "Requested change: replace/admin panel login mechanism with a basic username/password credential (admin/admin) instead of Internet Identity.",
+    "Add a deployment rollback/previous-version retention strategy so a known-good version can remain live or be restored quickly if a new version fails."
   ],
   "known_issues": [
     "Admin panel access denied: current Internet Identity principal not recognized as admin; backend appears to have no admin configured / access-control list missing, blocking all admin access.",
@@ -15,7 +16,10 @@
     "Password-based admin login (admin/admin) still results in \"Unauthorized: Only admins can assign user roles\" after submitting credentials; login session/token is not being recognized/applied and the admin panel continues to behave as if not logged in (old admin-check logic still active or session not persisted).",
     "After submitting admin credentials, UI remains stuck on the login page and does not navigate/open the admin panel (login success state/session not applied or routing not triggered).",
     "Admin panel navigation items (Site Settings, Page Sections, Products, Gallery, Contact Info, Messages) lead to \"Not Found\"—admin sub-routes are missing/misconfigured or routing/basePath is incorrect in production build.",
-    "adminLogin calls are failing with IC0508 (reject code 5) because the backend canister (ry7no-ryaaa-aaaag-aww3q-cai) is stopped, causing replica rejection errors."
+    "adminLogin calls are failing with IC0508 (reject code 5) because the backend canister (ry7no-ryaaa-aaaag-aww3q-cai) is stopped, causing replica rejection errors.",
+    "Public website landing page is stuck on a \"loading content\" state (content fetch/initialization or frontend data-loading is not completing), blocking the homepage from rendering.",
+    "After deploying Version 10 to production, the public landing page renders blank (white screen) instead of showing content or a loading/error state.",
+    "User reports that after Version 11 deployment, \"everything not working\" (site broadly broken/unusable beyond the specific backend-connection error), indicating a wider regression requiring end-to-end diagnostics."
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -234,6 +238,158 @@
         "REQ-33"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-prevent-the-public-website-home-about-products-gallery-contact-and-footer-from-remaining-indefinitely-in-a-loading-state-when-cms-content-queries-cannot-complete-e-g-backend-canister-stopped-unreachable-by-configuring-the-public-react-query-fetches-to-fail-fast-and-surface-an-error-state-instead-of-continuously-loading-retrying",
+      "title": "Prevent the public website (Home/About/Products/Gallery/Contact and footer) from remaining indefinitely in a loading state when CMS content queries cannot complete (e.g., backend canister stopped/unreachable) by configuring the public React Query fetches to fail fast and surface an error state instead of continuously loading/retrying.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-user-friendly-english-error-messaging-for-public-content-fetch-failures-including-explicit-handling-for-replica-rejection-ic0508-canister-is-stopped-and-provide-a-try-again-action-that-refetches-the-failed-public-queries",
+      "title": "Add user-friendly, English error messaging for public content fetch failures, including explicit handling for replica rejection IC0508 / “canister is stopped”, and provide a “Try Again” action that refetches the failed public queries.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-home-page-loading-error-composition-so-it-uses-the-existing-errorstate-try-again-behavior-and-never-blocks-rendering-indefinitely-it-must-either-render-content-including-fallback-text-if-cms-is-empty-or-render-an-error-state-with-retry",
+      "title": "Update the Home page loading/error composition so it uses the existing ErrorState “Try Again” behavior and never blocks rendering indefinitely: it must either render content (including fallback text if CMS is empty) or render an error state with retry.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-public-home-page-to-never-remain-indefinitely-in-the-loading-content-state-it-must-either-render-content-with-existing-fallback-text-when-cms-content-is-empty-or-render-an-english-error-state-with-a-working-try-again-action",
+      "title": "Update the public Home page to never remain indefinitely in the \"Loading content...\" state; it must either render content (with existing fallback text when CMS content is empty) or render an English error state with a working “Try Again” action.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-home-page-error-ui-uses-the-shared-errorstate-component-with-an-explicit-onretry-handler-do-not-render-errorstate-without-try-again-when-a-recoverable-fetch-error-occurs",
+      "title": "Ensure the Home page error UI uses the shared ErrorState component with an explicit onRetry handler (do not render ErrorState without “Try Again” when a recoverable fetch error occurs).",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-harden-public-react-query-fetch-behavior-so-public-page-queries-fail-fast-and-surface-an-error-state-instead-of-infinite-loading-retrying-when-the-backend-cannot-be-reached",
+      "title": "Harden public React Query fetch behavior so public-page queries fail fast and surface an error state (instead of infinite loading/retrying) when the backend cannot be reached.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-prevent-the-public-landing-page-from-rendering-as-a-blank-white-screen-in-production-by-adding-a-top-level-react-error-boundary-around-the-public-app-router-so-any-runtime-exception-renders-a-user-friendly-english-error-ui-instead-of-a-blank-page",
+      "title": "Prevent the public landing page from rendering as a blank/white screen in production by adding a top-level React error boundary around the public app router so any runtime exception renders a user-friendly English error UI instead of a blank page.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-public-site-fallback-route-not-found-for-unknown-non-admin-urls-so-the-app-never-renders-blank-when-navigation-resolves-to-an-unmatched-route-in-production",
+      "title": "Add a public-site fallback route (Not Found) for unknown non-admin URLs so the app never renders blank when navigation resolves to an unmatched route in production.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-harden-public-landing-page-rendering-so-missing-static-assets-e-g-generated-hero-pattern-images-cannot-cause-a-fatal-render-failure-handle-image-load-errors-gracefully-and-continue-rendering-the-page-with-safe-fallbacks",
+      "title": "Harden public landing page rendering so missing static assets (e.g., generated hero/pattern images) cannot cause a fatal render failure: handle image load errors gracefully and continue rendering the page with safe fallbacks.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-harden-frontend-actor-creation-so-the-app-fails-fast-does-not-hang-when-the-backend-cannot-be-reached-and-surfaces-an-english-error-state-instead-of-leaving-pages-blank-or-stuck-in-loading",
+      "title": "Harden frontend actor creation so the app fails fast (does not hang) when the backend cannot be reached, and surfaces an English error state instead of leaving pages blank or stuck in loading.",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-single-consistent-backend-unavailable-ui-for-public-pages-that-appears-when-any-public-content-query-fails-due-to-backend-connectivity-including-ic0508-canister-stopped-and-ensure-the-try-again-action-refetches-the-relevant-queries",
+      "title": "Add a single, consistent “Backend unavailable” UI for public pages that appears when any public content query fails due to backend connectivity (including IC0508 / canister stopped), and ensure the “Try Again” action refetches the relevant queries.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-admin-gating-so-that-when-the-admin-panel-backend-is-unavailable-the-admin-route-shows-a-clear-english-message-and-keeps-the-existing-session-token-intact-no-forced-logout-unless-the-token-is-truly-invalid-expired",
+      "title": "Improve admin gating so that when the admin panel backend is unavailable, the admin route shows a clear English message and keeps the existing session token intact (no forced logout) unless the token is truly invalid/expired.",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-lightweight-in-app-diagnostics-view-reachable-from-the-public-error-state-that-shows-whether-actor-exists-last-connectivity-error-message-and-the-result-of-calling-the-backend-health-endpoint-when-possible-using-only-english-user-facing-text",
+      "title": "Add a lightweight in-app diagnostics view reachable from the public error state that shows: whether actor exists, last connectivity error message, and the result of calling the backend health endpoint (when possible), using only English user-facing text.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-all-backend-unavailable-error-states-across-public-and-admin-experiences-provide-a-deterministic-recovery-path-try-again-reload-and-never-leave-the-app-in-an-indefinite-loading-state",
+      "title": "Ensure all backend-unavailable error states across public and admin experiences provide a deterministic recovery path (Try Again / Reload) and never leave the app in an indefinite loading state.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-all-admin-panel-sidebar-links-resolve-to-working-admin-routes-dashboard-site-settings-page-sections-products-gallery-contact-info-messages-instead-of-a-not-found-page-including-after-browser-refresh-on-those-urls",
+      "title": "Ensure all Admin Panel sidebar links resolve to working admin routes (Dashboard, Site Settings, Page Sections, Products, Gallery, Contact Info, Messages) instead of a Not Found page, including after browser refresh on those URLs.",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-verify-an-admin-area-not-found-fallback-route-for-unknown-admin-paths-under-admin-e-g-admin-unknown-that-shows-a-user-friendly-english-message-and-a-link-back-to-the-admin-dashboard",
+      "title": "Add/verify an admin-area Not Found fallback route for unknown admin paths under /admin (e.g., /admin/unknown) that shows a user-friendly English message and a link back to the Admin Dashboard.",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-restore-the-last-known-working-deployed-version-as-the-primary-production-version-so-the-site-is-usable-again-and-keep-the-currently-deployed-broken-version-accessible-separately-for-troubleshooting-do-not-replace-or-delete-the-previous-working-deployment",
+      "title": "Restore the last known working deployed version as the primary production version so the site is usable again, and keep the currently-deployed (broken) version accessible separately for troubleshooting (do not replace or delete the previous working deployment).",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-visible-build-version-identifier-to-the-frontend-ui-public-pages-and-admin-login-screen-so-testers-can-confirm-which-version-they-are-viewing-using-only-english-user-facing-text",
+      "title": "Add a visible build/version identifier to the frontend UI (public pages and admin login screen) so testers can confirm which version they are viewing, using only English user-facing text.",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-safer-release-flow-in-the-app-so-that-if-the-backend-is-unreachable-or-the-app-hits-a-fatal-runtime-error-during-startup-users-see-a-clear-english-error-screen-with-a-recovery-action-reload-try-again-rather-than-a-broken-blank-experience",
+      "title": "Implement a safer release flow in the app so that if the backend is unreachable or the app hits a fatal runtime error during startup, users see a clear English error screen with a recovery action (Reload / Try Again) rather than a broken/blank experience.",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -307,6 +463,26 @@
       "reqIds": [
         "REQ-22"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Fix production issue where the public landing page shows blank after going live (ensure homepage renders content or a clear error state)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Add a public, read-only backend connectivity check (health endpoint) that the frontend can call to quickly determine whether the backend canister is reachable, and return a short English status string.",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Keep the previous production version available (rollback capability) when the latest deployment is not working",
+      "reqIds": [],
       "status": "pending"
     }
   ],

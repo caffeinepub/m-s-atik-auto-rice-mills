@@ -1,7 +1,9 @@
 import { useGetProducts } from '../hooks/useQueries';
-import { LoadingState, ErrorState, EmptyState, CardSkeleton } from '../components/QueryState';
+import { LoadingState, EmptyState, CardSkeleton } from '../components/QueryState';
+import BackendUnavailableState from '../components/BackendUnavailableState';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { isConnectivityError } from '../utils/queryTimeout';
 
 export default function ProductsPage() {
   const { data: products, isLoading, error, refetch } = useGetProducts();
@@ -21,12 +23,12 @@ export default function ProductsPage() {
     );
   }
 
-  if (error) {
+  if (error && isConnectivityError(error)) {
     return (
       <div className="py-16 md:py-24">
         <div className="container">
           <h1 className="text-4xl md:text-5xl font-bold mb-12">Our Products</h1>
-          <ErrorState message="Failed to load products" onRetry={() => refetch()} />
+          <BackendUnavailableState onRetry={() => refetch()} />
         </div>
       </div>
     );

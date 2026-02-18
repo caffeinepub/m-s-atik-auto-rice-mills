@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
+import BuildVersionLabel from '../components/BuildVersionLabel';
 
 interface AdminLoginProps {
   sessionError?: string | null;
@@ -94,6 +95,10 @@ export default function AdminLogin({ sessionError }: AdminLoginProps) {
               )}
             </Button>
           </form>
+          
+          <div className="mt-6 pt-6 border-t flex justify-center">
+            <BuildVersionLabel />
+          </div>
         </CardContent>
       </Card>
     </div>

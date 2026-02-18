@@ -348,4 +348,9 @@ actor {
     messages.add(id, newMessage);
     nextId += 1;
   };
+
+  // Health endpoint for backend connectivity check
+  public query ({ caller }) func health() : async Text {
+    "Healthy: Backend canister is reachable and responding";
+  };
 };

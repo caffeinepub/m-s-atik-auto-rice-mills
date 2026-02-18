@@ -152,6 +152,7 @@ export interface backendInterface {
     getSections(): Promise<Array<Section>>;
     getSiteSettings(): Promise<SiteSettings>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    health(): Promise<string>;
     initializeContent(adminToken: string | null): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
@@ -429,6 +430,20 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getUserProfile(arg0);
             return from_candid_opt_n5(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async health(): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.health();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.health();
+            return result;
         }
     }
     async initializeContent(arg0: string | null): Promise<void> {

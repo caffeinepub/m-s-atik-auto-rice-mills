@@ -69,6 +69,7 @@ export interface backendInterface {
     getSections(): Promise<Array<Section>>;
     getSiteSettings(): Promise<SiteSettings>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    health(): Promise<string>;
     initializeContent(adminToken: string | null): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;

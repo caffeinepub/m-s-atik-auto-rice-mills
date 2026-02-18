@@ -1,14 +1,15 @@
-import { useGetSections, useGetProducts, useGetGallery, useGetMessages } from '../../hooks/useQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Package, Image, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, FileText, Package, Image, MessageSquare } from 'lucide-react';
+import { useGetSections, useGetProducts, useGetGallery, useGetMessages } from '../../hooks/useQueries';
+import { useAdminSession } from '../hooks/useAdminSession';
 import { LoadingState } from '../../components/QueryState';
-import InitializeContentCard from '../components/InitializeContentCard';
 
 export default function AdminDashboard() {
+  const { token } = useAdminSession();
   const { data: sections, isLoading: sectionsLoading } = useGetSections();
   const { data: products, isLoading: productsLoading } = useGetProducts();
   const { data: gallery, isLoading: galleryLoading } = useGetGallery();
-  const { data: messages, isLoading: messagesLoading } = useGetMessages();
+  const { data: messages, isLoading: messagesLoading } = useGetMessages(token);
 
   const isLoading = sectionsLoading || productsLoading || galleryLoading || messagesLoading;
 
@@ -39,24 +40,20 @@ export default function AdminDashboard() {
       title: 'Messages',
       value: messages?.length || 0,
       icon: MessageSquare,
-      description: 'Contact submissions',
+      description: 'Contact messages',
     },
   ];
 
-  const hasContent = (sections?.length || 0) > 0 || (products?.length || 0) > 0 || (gallery?.length || 0) > 0;
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome to the admin panel. Manage your website content from here.
+        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <p className="text-muted-foreground mt-2">
+          Welcome to the admin panel. Manage your site content from here.
         </p>
       </div>
 
-      {!hasContent && <InitializeContentCard />}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -73,6 +70,21 @@ export default function AdminDashboard() {
           );
         })}
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <LayoutDashboard className="h-5 w-5" />
+            Quick Actions
+          </CardTitle>
+          <CardDescription>Common administrative tasks</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-muted-foreground">
+            Use the sidebar navigation to manage different sections of your website.
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

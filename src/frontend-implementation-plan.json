@@ -1,92 +1,93 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin auth UI: handle stopped-canister (IC0508) replica rejection errors",
+  "title": "Restore usability with rollback safety UX, version labeling, and resilient startup",
   "requirements": [
     {
-      "id": "REQ-31",
-      "summary": "Show a clear English error in Admin Login when adminLogin fails due to IC0508/canister-stopped, and ensure the UI exits loading cleanly.",
+      "id": "REQ-51",
+      "summary": "Enable safe side-by-side access paths for restored production and broken build via configurable base path and clearly identified preview mode UI hints.",
       "acceptanceCriteria": [
-        "With the backend canister stopped, submitting the Admin Login form shows an English error message stating that the backend canister is stopped and that the service is temporarily unavailable.",
-        "The Login button returns to the non-loading state after the error; the page remains usable.",
-        "No uncaught exceptions are logged to the console from the login attempt (beyond a single controlled error log, if present)."
+        "Production traffic serves the last known working version again (no blank screen / broken navigation regressions compared to that version).",
+        "The currently-deployed version remains accessible via a separate, clearly identified access path (e.g., a preview URL or versioned path), without impacting the restored production version.",
+        "No data/content stored in the backend is lost due to the rollback (CMS content, messages, settings remain intact)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/admin/utils/replicaRejection.ts",
+          "path": "frontend/src/utils/releaseChannel.ts",
           "operation": "create",
-          "description": "Create a shared utility to extract replica rejection details from thrown errors (error_code, reject_code, reject_message) and detect IC0508 / “canister is stopped” conditions, returning a normalized structure suitable for consistent user messaging."
+          "description": "Add a small utility to derive an app release channel (e.g., production vs preview) and an optional preview identifier from build-time variables and/or URL hints, to support distinct access paths while sharing the same backend data."
         },
         {
-          "path": "frontend/src/admin/utils/adminAuthErrorMessages.ts",
+          "path": "frontend/src/utils/routerBasePath.ts",
           "operation": "create",
-          "description": "Add a small mapping layer that converts normalized replica rejection details into consistent, user-friendly English messages for admin login errors (distinguishing IC0508/canister-stopped vs invalid credentials vs generic failures)."
+          "description": "Add a utility that derives a router base path from runtime location (and/or build-time configuration) to allow the app to be served under a versioned/preview path without breaking internal navigation."
         },
         {
-          "path": "frontend/src/admin/hooks/useAdminAuth.ts",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Update the admin login mutation to catch and normalize replica rejection errors using the new utilities, then throw an Error with a clear English message for IC0508/canister-stopped (service temporarily unavailable) while preserving the existing invalid-credentials behavior; ensure errors are handled as controlled mutation errors (no uncaught exceptions)."
+          "description": "Wire configurable base path support into the TanStack router creation so the same frontend can run correctly under a production root path and an alternate preview/versioned path. Ensure the preview channel can be clearly identified in the UI (paired with the version label work)."
+        },
+        {
+          "path": "frontend/src/components/BuildVersionLabel.tsx",
+          "operation": "modify",
+          "description": "Extend the version label component (added in REQ-52) to optionally display a non-intrusive preview indicator when the release channel is not production. Use the shadcn-ui Badge component for consistent styling. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-52",
+      "summary": "Display a visible build/version identifier on public pages and the admin login screen (English only).",
+      "acceptanceCriteria": [
+        "Public pages display a small, non-intrusive version label (e.g., in the footer) indicating the build/version string.",
+        "Admin login screen displays the same build/version label.",
+        "The version label is present in production builds and can be used to distinguish the restored version from the broken one."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/buildInfo.ts",
+          "operation": "create",
+          "description": "Implement a single source of truth for the app build/version string (read from build-time variables with safe fallbacks) to be consumed by UI surfaces."
+        },
+        {
+          "path": "frontend/src/components/BuildVersionLabel.tsx",
+          "operation": "create",
+          "description": "Create a small, non-intrusive version label component that renders the build/version string in English. Use shadcn-ui Badge (or similarly minimal shadcn-ui primitives) to keep it unobtrusive. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/SiteFooter.tsx",
+          "operation": "modify",
+          "description": "Render the BuildVersionLabel in the public footer so it appears on all public pages without affecting layout (keep it small and non-intrusive)."
         },
         {
           "path": "frontend/src/admin/AdminLogin.tsx",
           "operation": "modify",
-          "description": "Adjust Admin Login error presentation to prefer the standardized English message produced by the login mutation (including IC0508/canister-stopped) and ensure the form remains interactive after failure (no indefinite loading)."
+          "description": "Render the BuildVersionLabel on the admin login screen (e.g., beneath the form) using English-only text."
         }
       ]
     },
     {
-      "id": "REQ-32",
-      "summary": "Update AdminRoutes token-validation gating to recognize IC0508/canister-stopped and show an English backend-unavailable sessionError without clearing a valid stored token.",
+      "id": "REQ-53",
+      "summary": "Add a startup-safe release flow: show a clear English error screen with deterministic recovery when backend is unreachable or a fatal runtime error occurs.",
       "acceptanceCriteria": [
-        "When the admin session token exists and AdminRoutes token validation fails due to IC0508/canister-stopped, the UI shows an English error indicating backend unavailability.",
-        "In the IC0508/canister-stopped case, the stored admin token is not automatically cleared (so the session can recover when the backend becomes available).",
-        "For non-IC0508 validation failures (e.g., unauthorized/expired token), the existing behavior remains: token is cleared and an English “session expired/invalid” message is shown."
+        "If the backend cannot be reached at load time, the app renders a user-friendly English error state with a working recovery action (Reload and/or Try Again).",
+        "If a runtime exception occurs during public route rendering, a user-friendly English error UI is shown instead of a blank/white screen.",
+        "Recovery actions do not cause infinite loading loops; they deterministically retry initialization and either recover or re-display the error state."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/admin/AdminRoutes.tsx",
-          "operation": "modify",
-          "description": "Enhance token validation error handling to use the shared replica rejection extractor; when IC0508/canister-stopped is detected, keep the stored admin token intact and set an English sessionError indicating the admin backend is temporarily unavailable; otherwise keep existing behavior (clear token + session expired/invalid message). Use the existing admin gating flow supported by the selected authorization component for access-restricted admin UX; verify the component's usage instructions before implementing."
+          "path": "frontend/src/components/StartupHealthGate.tsx",
+          "operation": "create",
+          "description": "Create a gate component that performs a backend reachability check at startup (using the existing backend health hook) and shows a full-screen English error UI with deterministic recovery actions (Try Again triggers a single refetch; Reload performs a hard reload). Use existing shadcn-ui components for consistent UI. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/admin/hooks/useAdminSession.ts",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Ensure sessionError lifecycle supports the new backend-unavailable message without forcing token clearing; keep token storage/validation rules intact and avoid introducing non-English user-facing strings."
+          "description": "Wrap the router rendering with StartupHealthGate so the app never shows a blank/broken screen on initial backend unreachability, and retries are user-driven (no infinite loops)."
         },
         {
-          "path": "frontend/src/admin/utils/replicaRejection.ts",
+          "path": "frontend/src/components/PublicAppErrorBoundary.tsx",
           "operation": "modify",
-          "description": "Extend/confirm the extractor covers the error shapes produced by token-validation calls (including nested causes/strings) and reliably flags IC0508 and/or reject_message containing “is stopped”."
-        }
-      ]
-    },
-    {
-      "id": "REQ-33",
-      "summary": "Standardize replica rejection detail extraction and ensure consistent English user-facing messaging across admin auth error states (login + token validation).",
-      "acceptanceCriteria": [
-        "Admin login and admin token validation errors produce consistent English messaging for IC0508/canister-stopped vs invalid credentials vs unauthorized/expired token.",
-        "User-facing strings introduced or updated for these error states are in English."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/admin/utils/replicaRejection.ts",
-          "operation": "modify",
-          "description": "Finalize a single, reusable normalization contract for replica rejection errors (error_code, reject_code, reject_message) so both login and route gating can produce consistent behavior and text."
-        },
-        {
-          "path": "frontend/src/admin/utils/adminAuthErrorMessages.ts",
-          "operation": "modify",
-          "description": "Centralize all admin-auth-related user-facing English strings for error states (IC0508/canister-stopped, invalid credentials, session expired/invalid, generic failure) to ensure consistent wording across login and token validation."
-        },
-        {
-          "path": "frontend/src/admin/hooks/useAdminAuth.ts",
-          "operation": "modify",
-          "description": "Adopt the shared extractor + message mapper for adminLogin failures so the thrown error messages are consistent and English-only across admin authentication states."
-        },
-        {
-          "path": "frontend/src/admin/AdminRoutes.tsx",
-          "operation": "modify",
-          "description": "Adopt the shared extractor + message mapper for token-validation failures so the sessionError displayed on the login screen is consistent and English-only across admin authentication states."
+          "description": "Ensure the public error boundary recovery actions are deterministic and remain English-only; align button labels and navigation behavior with the startup gate (Reload/Try Again style) to avoid white-screen failures during public route rendering."
         }
       ]
     }

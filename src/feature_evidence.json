@@ -2,13 +2,35 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-when-backend-calls-fail-with-replica-rejection-error-ic0508-reject-code-5-indicating-the-backend-canister-is-stopped-e-g-canister-id-ry7no-ryaaa-aaaag-aww3q-cai-display-a-clear-english-error-message-in-the-admin-login-ui-instead-of-a-generic-error-and-do-not-crash-or-leave-the-ui-in-an-indefinite-loading-state",
-      "featureTitle": "When backend calls fail with replica rejection error IC0508 (reject code 5) indicating the backend canister is stopped (e.g., canister ID ry7no-ryaaa-aaaag-aww3q-cai), display a clear English error message in the Admin Login UI instead of a generic error, and do not crash or leave the UI in an indefinite loading state.",
+      "featureId": "feature-restore-the-last-known-working-deployed-version-as-the-primary-production-version-so-the-site-is-usable-again-and-keep-the-currently-deployed-broken-version-accessible-separately-for-troubleshooting-do-not-replace-or-delete-the-previous-working-deployment",
+      "featureTitle": "Restore the last known working deployed version as the primary production version so the site is usable again, and keep the currently-deployed (broken) version accessible separately for troubleshooting (do not replace or delete the previous working deployment).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/BuildVersionLabel.tsx",
+        "frontend/src/utils/releaseChannel.ts",
+        "frontend/src/utils/routerBasePath.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-51"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-visible-build-version-identifier-to-the-frontend-ui-public-pages-and-admin-login-screen-so-testers-can-confirm-which-version-they-are-viewing-using-only-english-user-facing-text",
+      "featureTitle": "Add a visible build/version identifier to the frontend UI (public pages and admin login screen) so testers can confirm which version they are viewing, using only English user-facing text.",
       "files": [
         "frontend/src/admin/AdminLogin.tsx",
-        "frontend/src/admin/hooks/useAdminAuth.ts",
-        "frontend/src/admin/utils/adminAuthErrorMessages.ts",
-        "frontend/src/admin/utils/replicaRejection.ts"
+        "frontend/src/components/BuildVersionLabel.tsx",
+        "frontend/src/components/SiteFooter.tsx",
+        "frontend/src/utils/buildInfo.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -19,16 +41,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-31"
+        "REQ-52"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-admin-route-gating-token-validation-error-handling-to-recognize-ic0508-canister-is-stopped-errors-and-present-an-english-sessionerror-message-that-indicates-the-admin-panel-backend-is-unavailable-without-incorrectly-clearing-a-valid-session-token-solely-due-to-the-canister-stopped-condition",
-      "featureTitle": "Update admin route gating token-validation error handling to recognize IC0508/“canister is stopped” errors and present an English sessionError message that indicates the admin panel backend is unavailable, without incorrectly clearing a valid session token solely due to the canister-stopped condition.",
+      "featureId": "feature-implement-a-safer-release-flow-in-the-app-so-that-if-the-backend-is-unreachable-or-the-app-hits-a-fatal-runtime-error-during-startup-users-see-a-clear-english-error-screen-with-a-recovery-action-reload-try-again-rather-than-a-broken-blank-experience",
+      "featureTitle": "Implement a safer release flow in the app so that if the backend is unreachable or the app hits a fatal runtime error during startup, users see a clear English error screen with a recovery action (Reload / Try Again) rather than a broken/blank experience.",
       "files": [
-        "frontend/src/admin/AdminRoutes.tsx",
-        "frontend/src/admin/utils/replicaRejection.ts"
+        "frontend/src/App.tsx",
+        "frontend/src/components/PublicAppErrorBoundary.tsx",
+        "frontend/src/components/StartupHealthGate.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -39,29 +62,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-32"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-standardize-extraction-of-replica-rejection-details-error-code-reject-code-reject-message-from-thrown-errors-for-display-in-user-friendly-english-messages-and-ensure-user-facing-text-remains-english-across-admin-authentication-error-states",
-      "featureTitle": "Standardize extraction of replica rejection details (error_code, reject_code, reject_message) from thrown errors for display in user-friendly English messages, and ensure user-facing text remains English across admin authentication error states.",
-      "files": [
-        "frontend/src/admin/AdminRoutes.tsx",
-        "frontend/src/admin/hooks/useAdminAuth.ts",
-        "frontend/src/admin/utils/adminAuthErrorMessages.ts",
-        "frontend/src/admin/utils/replicaRejection.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-33"
+        "REQ-53"
       ],
       "confidence": "high"
     }

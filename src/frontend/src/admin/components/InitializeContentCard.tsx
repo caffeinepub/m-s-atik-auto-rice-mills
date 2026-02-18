@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useInitializeContent } from '../../hooks/useQueries';
+import { useAdminSession } from '../hooks/useAdminSession';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -8,11 +9,12 @@ import { Loader2, Sparkles } from 'lucide-react';
 
 export default function InitializeContentCard() {
   const [open, setOpen] = useState(false);
+  const { token } = useAdminSession();
   const initializeContent = useInitializeContent();
 
   const handleInitialize = async () => {
     try {
-      await initializeContent.mutateAsync();
+      await initializeContent.mutateAsync(token);
       toast.success('Content initialized successfully!');
       setOpen(false);
     } catch (error) {

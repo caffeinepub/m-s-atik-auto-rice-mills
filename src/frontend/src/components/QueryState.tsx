@@ -29,10 +29,10 @@ export function ErrorState({ message = 'Something went wrong', onRetry }: ErrorS
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
-        <AlertDescription className="mt-2">
-          {message}
+        <AlertDescription className="mt-2 space-y-3">
+          <p>{message}</p>
           {onRetry && (
-            <Button onClick={onRetry} variant="outline" size="sm" className="mt-4">
+            <Button onClick={onRetry} variant="outline" size="sm">
               Try Again
             </Button>
           )}

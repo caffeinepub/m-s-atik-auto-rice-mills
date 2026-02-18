@@ -1,7 +1,9 @@
-import { useGetGallery } from '../hooks/useQueries';
-import { LoadingState, ErrorState, EmptyState, CardSkeleton } from '../components/QueryState';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useState } from 'react';
+import { useGetGallery } from '../hooks/useQueries';
+import { LoadingState, EmptyState, CardSkeleton } from '../components/QueryState';
+import BackendUnavailableState from '../components/BackendUnavailableState';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { isConnectivityError } from '../utils/queryTimeout';
 import type { GalleryItem } from '../backend';
 
 export default function GalleryPage() {
@@ -13,8 +15,8 @@ export default function GalleryPage() {
       <div className="py-16 md:py-24">
         <div className="container">
           <h1 className="text-4xl md:text-5xl font-bold mb-12">Gallery</h1>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3].map((i) => (
               <CardSkeleton key={i} />
             ))}
           </div>
@@ -23,12 +25,12 @@ export default function GalleryPage() {
     );
   }
 
-  if (error) {
+  if (error && isConnectivityError(error)) {
     return (
       <div className="py-16 md:py-24">
         <div className="container">
           <h1 className="text-4xl md:text-5xl font-bold mb-12">Gallery</h1>
-          <ErrorState message="Failed to load gallery" onRetry={() => refetch()} />
+          <BackendUnavailableState onRetry={() => refetch()} />
         </div>
       </div>
     );
@@ -40,59 +42,58 @@ export default function GalleryPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Gallery</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Take a look at our facilities, processes, and the quality that defines us.
+            Explore our facilities, products, and the journey of quality rice processing.
           </p>
         </div>
 
         {!gallery || gallery.length === 0 ? (
-          <EmptyState message="No gallery items available yet. Check back soon for updates." />
+          <EmptyState message="No gallery items available at the moment. Please check back soon." />
         ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {gallery.map((item) => (
-                <div
-                  key={Number(item.id)}
-                  className="group relative aspect-video bg-muted rounded-lg overflow-hidden cursor-pointer hover:shadow-xl transition-all"
-                  onClick={() => setSelectedItem(item)}
-                >
-                  <img
-                    src={item.imageUrl}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      e.currentTarget.src = '/assets/generated/hero-rice-mill.dim_1600x900.png';
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                      <h3 className="font-semibold text-lg">{item.title}</h3>
-                      {item.caption && <p className="text-sm opacity-90">{item.caption}</p>}
-                    </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {gallery.map((item) => (
+              <div
+                key={Number(item.id)}
+                className="group relative aspect-video overflow-hidden rounded-lg cursor-pointer bg-muted"
+                onClick={() => setSelectedItem(item)}
+              >
+                <img
+                  src={item.imageUrl}
+                  alt={item.title}
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                  onError={(e) => {
+                    e.currentTarget.src = '/assets/generated/icons-set-3.dim_512x512.png';
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                    <h3 className="font-semibold text-lg">{item.title}</h3>
+                    <p className="text-sm text-white/90">{item.caption}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
-              <DialogContent className="max-w-4xl">
-                <DialogHeader>
-                  <DialogTitle>{selectedItem?.title}</DialogTitle>
-                  {selectedItem?.caption && <DialogDescription>{selectedItem.caption}</DialogDescription>}
-                </DialogHeader>
-                <div className="mt-4">
-                  <img
-                    src={selectedItem?.imageUrl || ''}
-                    alt={selectedItem?.title || ''}
-                    className="w-full rounded-lg"
-                    onError={(e) => {
-                      e.currentTarget.src = '/assets/generated/hero-rice-mill.dim_1600x900.png';
-                    }}
-                  />
-                </div>
-              </DialogContent>
-            </Dialog>
-          </>
+              </div>
+            ))}
+          </div>
         )}
+
+        {/* Image Dialog */}
+        <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>{selectedItem?.title}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <img
+                src={selectedItem?.imageUrl || ''}
+                alt={selectedItem?.title || ''}
+                className="w-full rounded-lg"
+                onError={(e) => {
+                  e.currentTarget.src = '/assets/generated/icons-set-3.dim_512x512.png';
+                }}
+              />
+              <p className="text-muted-foreground">{selectedItem?.caption}</p>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

@@ -1,12 +1,13 @@
+import { StrictMode } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet } from '@tanstack/react-router';
-import { ThemeProvider } from 'next-themes';
-import { Toaster } from '@/components/ui/sonner';
-import PublicLayout from './layout/PublicLayout';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import ProductsPage from './pages/ProductsPage';
 import GalleryPage from './pages/GalleryPage';
 import ContactPage from './pages/ContactPage';
+import DiagnosticsPage from './pages/DiagnosticsPage';
+import PublicNotFound from './pages/PublicNotFound';
 import AdminRoutes from './admin/AdminRoutes';
 import AdminDashboard from './admin/pages/AdminDashboard';
 import SiteSettingsEditor from './admin/pages/SiteSettingsEditor';
@@ -16,50 +17,102 @@ import GalleryEditor from './admin/pages/GalleryEditor';
 import ContactInfoEditor from './admin/pages/ContactInfoEditor';
 import MessagesInbox from './admin/pages/MessagesInbox';
 import AdminNotFound from './admin/pages/AdminNotFound';
+import HeaderNav from './components/HeaderNav';
+import SiteFooter from './components/SiteFooter';
+import PublicAppErrorBoundary from './components/PublicAppErrorBoundary';
+import StartupHealthGate from './components/StartupHealthGate';
 
-const rootRoute = createRootRoute({
-  component: () => <PublicLayout />,
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
 });
 
-const indexRoute = createRoute({
+// Layout component for public routes
+function PublicLayout() {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <HeaderNav />
+      <main className="flex-1">
+        <Outlet />
+      </main>
+      <SiteFooter />
+    </div>
+  );
+}
+
+// Root route
+const rootRoute = createRootRoute({
+  component: () => <Outlet />,
+});
+
+// Public layout route
+const publicLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
+  id: 'public',
+  component: () => (
+    <PublicAppErrorBoundary>
+      <PublicLayout />
+    </PublicAppErrorBoundary>
+  ),
+});
+
+// Public routes
+const indexRoute = createRoute({
+  getParentRoute: () => publicLayoutRoute,
   path: '/',
   component: HomePage,
 });
 
 const aboutRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => publicLayoutRoute,
   path: '/about',
   component: AboutPage,
 });
 
 const productsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => publicLayoutRoute,
   path: '/products',
   component: ProductsPage,
 });
 
 const galleryRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => publicLayoutRoute,
   path: '/gallery',
   component: GalleryPage,
 });
 
 const contactRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => publicLayoutRoute,
   path: '/contact',
   component: ContactPage,
 });
 
-// Admin parent route - handles auth gate
+const diagnosticsRoute = createRoute({
+  getParentRoute: () => publicLayoutRoute,
+  path: '/diagnostics',
+  component: DiagnosticsPage,
+});
+
+// Catch-all for unknown public routes
+const notFoundRoute = createRoute({
+  getParentRoute: () => publicLayoutRoute,
+  path: '*',
+  component: PublicNotFound,
+});
+
+// Admin parent route - wraps all admin routes with authentication
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin',
   component: AdminRoutes,
 });
 
-// Admin child routes - all pass through AdminRoutes auth gate
-const adminIndexRoute = createRoute({
+// Admin child routes - nested under /admin
+const adminDashboardRoute = createRoute({
   getParentRoute: () => adminRoute,
   path: '/',
   component: AdminDashboard,
@@ -101,21 +154,26 @@ const adminMessagesRoute = createRoute({
   component: MessagesInbox,
 });
 
-// Admin catch-all for unknown admin paths
+// Admin catch-all for unknown admin routes
 const adminNotFoundRoute = createRoute({
   getParentRoute: () => adminRoute,
   path: '*',
   component: AdminNotFound,
 });
 
+// Create route tree
 const routeTree = rootRoute.addChildren([
-  indexRoute,
-  aboutRoute,
-  productsRoute,
-  galleryRoute,
-  contactRoute,
+  publicLayoutRoute.addChildren([
+    indexRoute,
+    aboutRoute,
+    productsRoute,
+    galleryRoute,
+    contactRoute,
+    diagnosticsRoute,
+    notFoundRoute,
+  ]),
   adminRoute.addChildren([
-    adminIndexRoute,
+    adminDashboardRoute,
     adminSettingsRoute,
     adminSectionsRoute,
     adminProductsRoute,
@@ -126,8 +184,10 @@ const routeTree = rootRoute.addChildren([
   ]),
 ]);
 
+// Create router
 const router = createRouter({ routeTree });
 
+// Register router for type safety
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;
@@ -136,9 +196,12 @@ declare module '@tanstack/react-router' {
 
 export default function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <RouterProvider router={router} />
-      <Toaster />
-    </ThemeProvider>
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <StartupHealthGate>
+          <RouterProvider router={router} />
+        </StartupHealthGate>
+      </QueryClientProvider>
+    </StrictMode>
   );
 }
