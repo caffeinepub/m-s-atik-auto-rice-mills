@@ -35,6 +35,8 @@ export default function HomePage() {
   }
 
   // Handle connectivity error with BackendUnavailableState
+  // Only show this for content query failures, not startup failures
+  // (startup failures are handled by StartupHealthGate)
   if (isConnError) {
     return (
       <BackendUnavailableState

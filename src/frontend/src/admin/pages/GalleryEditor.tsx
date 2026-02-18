@@ -11,6 +11,7 @@ import { useAdminSession } from '../hooks/useAdminSession';
 import { LoadingState, ErrorState, EmptyState } from '@/components/QueryState';
 import { AdminDeleteConfirmDialog } from '../components/AdminDeleteConfirmDialog';
 import { AdminFormErrorAlert } from '../components/AdminFormErrorAlert';
+import { ImageStringUploadField } from '../components/ImageStringUploadField';
 import { toast } from 'sonner';
 import type { GalleryItem } from '@/backend';
 
@@ -188,16 +189,15 @@ export default function GalleryEditor() {
                   disabled={addMutation.isPending || updateMutation.isPending}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="imageUrl">Image URL</Label>
-                <Input
-                  id="imageUrl"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="Enter image URL"
-                  disabled={addMutation.isPending || updateMutation.isPending}
-                />
-              </div>
+              <ImageStringUploadField
+                label="Gallery Image"
+                value={formData.imageUrl}
+                onChange={(value) => setFormData({ ...formData, imageUrl: value })}
+                disabled={addMutation.isPending || updateMutation.isPending}
+                required
+                placeholder="Enter image URL or upload a file"
+                id="imageUrl"
+              />
               <div className="flex gap-2">
                 <Button type="submit" disabled={addMutation.isPending || updateMutation.isPending}>
                   {addMutation.isPending || updateMutation.isPending ? 'Saving...' : 'Save'}
@@ -232,14 +232,14 @@ export default function GalleryEditor() {
           {gallery.map((item) => (
             <Card key={item.id.toString()}>
               <CardHeader className="p-0">
-                <div className="aspect-video relative overflow-hidden rounded-t-lg bg-muted">
+                <div className="aspect-square relative overflow-hidden rounded-t-lg bg-muted">
                   <img src={item.imageUrl} alt={item.title} className="object-cover w-full h-full" />
                 </div>
               </CardHeader>
               <CardContent className="p-4">
                 <CardTitle className="text-lg mb-2">{item.title}</CardTitle>
-                {item.caption && <CardDescription className="line-clamp-2">{item.caption}</CardDescription>}
-                <div className="flex gap-2 mt-4">
+                {item.caption && <CardDescription className="line-clamp-2 mb-4">{item.caption}</CardDescription>}
+                <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => handleEdit(item)} disabled={isAdding || !!editingItem} className="flex-1">
                     <Pencil className="h-4 w-4 mr-2" />
                     Edit

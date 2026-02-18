@@ -1,93 +1,55 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T11:18:39.278Z",
+  "generatedAt": "2026-02-18T12:14:06.411Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Replace the placeholder admin pages (Page Sections, Products, Gallery, Contact Info, Messages) so they no longer display 'coming soon' and instead provide fully working CRUD/admin functionality backed by existing canister methods.",
+        "summary": "Rebuild and redeploy the application as Version 19 (rollback from the currently deployed Version 20) so the public homepage no longer shows the 'Backend Unreachable' screen.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/admin/pages/SectionsEditor.tsx",
-          "frontend/src/admin/pages/ProductsEditor.tsx",
-          "frontend/src/admin/pages/GalleryEditor.tsx",
-          "frontend/src/admin/pages/ContactInfoEditor.tsx",
-          "frontend/src/admin/pages/MessagesInbox.tsx"
+          "frontend/src/utils/buildInfo.ts",
+          "frontend/src/components/StartupHealthGate.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/admin/pages/SectionsEditor.tsx",
-          "frontend/src/admin/pages/ProductsEditor.tsx",
-          "frontend/src/admin/pages/GalleryEditor.tsx",
-          "frontend/src/admin/pages/ContactInfoEditor.tsx",
-          "frontend/src/admin/pages/MessagesInbox.tsx"
+          "frontend/src/utils/buildInfo.ts",
+          "frontend/src/components/StartupHealthGate.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Add React Query mutation hooks for admin content management (sections/products/gallery/contact info/messages) and wire them into the corresponding admin editor pages, including query invalidation so lists refresh after changes.",
+        "summary": "Harden the app’s post-deploy startup connectivity flow so that transient backend wake-up time does not strand users on the 'Backend Unreachable' screen on the homepage; add an automatic re-check/retry window before showing the final unreachable state.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/admin/hooks/useAdminContentMutations.ts",
-          "frontend/src/admin/pages/SectionsEditor.tsx",
-          "frontend/src/admin/pages/ProductsEditor.tsx",
-          "frontend/src/admin/pages/GalleryEditor.tsx",
-          "frontend/src/admin/pages/ContactInfoEditor.tsx",
-          "frontend/src/admin/pages/MessagesInbox.tsx"
+          "frontend/src/hooks/useBackendHealth.ts",
+          "frontend/src/components/StartupHealthGate.tsx",
+          "frontend/src/pages/HomePage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/admin/hooks/useAdminContentMutations.ts",
-          "frontend/src/admin/pages/SectionsEditor.tsx",
-          "frontend/src/admin/pages/ProductsEditor.tsx",
-          "frontend/src/admin/pages/GalleryEditor.tsx",
-          "frontend/src/admin/pages/ContactInfoEditor.tsx",
-          "frontend/src/admin/pages/MessagesInbox.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Implement basic, consistent admin editor UX for each page: list view with empty/loading/error states, an 'Add' action, edit capability, and a delete confirmation flow (where applicable).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/admin/components/AdminDeleteConfirmDialog.tsx",
-          "frontend/src/admin/components/AdminFormErrorAlert.tsx",
-          "frontend/src/admin/pages/SectionsEditor.tsx",
-          "frontend/src/admin/pages/ProductsEditor.tsx",
-          "frontend/src/admin/pages/GalleryEditor.tsx",
-          "frontend/src/admin/pages/ContactInfoEditor.tsx",
-          "frontend/src/admin/pages/MessagesInbox.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/admin/components/AdminDeleteConfirmDialog.tsx",
-          "frontend/src/admin/components/AdminFormErrorAlert.tsx",
-          "frontend/src/admin/pages/SectionsEditor.tsx",
-          "frontend/src/admin/pages/ProductsEditor.tsx",
-          "frontend/src/admin/pages/GalleryEditor.tsx",
-          "frontend/src/admin/pages/ContactInfoEditor.tsx",
-          "frontend/src/admin/pages/MessagesInbox.tsx"
+          "frontend/src/hooks/useBackendHealth.ts",
+          "frontend/src/components/StartupHealthGate.tsx",
+          "frontend/src/pages/HomePage.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/admin/components/AdminDeleteConfirmDialog.tsx",
-    "frontend/src/admin/components/AdminFormErrorAlert.tsx",
-    "frontend/src/admin/hooks/useAdminContentMutations.ts",
-    "frontend/src/admin/pages/ContactInfoEditor.tsx",
-    "frontend/src/admin/pages/GalleryEditor.tsx",
-    "frontend/src/admin/pages/MessagesInbox.tsx",
-    "frontend/src/admin/pages/ProductsEditor.tsx",
-    "frontend/src/admin/pages/SectionsEditor.tsx",
+    "frontend/src/components/StartupHealthGate.tsx",
+    "frontend/src/hooks/useBackendHealth.ts",
+    "frontend/src/pages/HomePage.tsx",
+    "frontend/src/utils/buildInfo.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

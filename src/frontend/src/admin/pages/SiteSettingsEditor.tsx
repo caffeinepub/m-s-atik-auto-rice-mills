@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGetSiteSettings, useSaveSiteSettings } from '../../hooks/useQueries';
 import { useAdminSession } from '../hooks/useAdminSession';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingState, ErrorState } from '../../components/QueryState';
+import { ImageStringUploadField } from '../components/ImageStringUploadField';
 import { Settings, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -18,12 +19,12 @@ export default function SiteSettingsEditor() {
   const [logoUrl, setLogoUrl] = useState('');
 
   // Initialize form when settings load
-  useState(() => {
+  useEffect(() => {
     if (settings) {
       setSiteName(settings.siteName);
       setLogoUrl(settings.logoUrl);
     }
-  });
+  }, [settings]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,19 +76,19 @@ export default function SiteSettingsEditor() {
                 onChange={(e) => setSiteName(e.target.value)}
                 placeholder="Enter site name"
                 required
+                disabled={saveMutation.isPending}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="logoUrl">Logo URL</Label>
-              <Input
-                id="logoUrl"
-                value={logoUrl}
-                onChange={(e) => setLogoUrl(e.target.value)}
-                placeholder="Enter logo URL"
-                required
-              />
-            </div>
+            <ImageStringUploadField
+              label="Site Logo"
+              value={logoUrl}
+              onChange={setLogoUrl}
+              disabled={saveMutation.isPending}
+              required
+              placeholder="Enter logo URL or upload a file"
+              id="logoUrl"
+            />
 
             <Button type="submit" disabled={saveMutation.isPending} className="gap-2">
               <Save className="h-4 w-4" />

@@ -12,8 +12,10 @@ interface StartupHealthGateProps {
 
 export default function StartupHealthGate({ children }: StartupHealthGateProps) {
   const { actor, isFetching: actorFetching } = useActor();
-  const { status, message, refetch: refetchHealth } = useBackendHealthStatus();
-  const [retryCount, setRetryCount] = useState(0);
+  const [manualRetryCount, setManualRetryCount] = useState(0);
+  
+  // Enable automatic retries during startup
+  const { status, message, refetch: refetchHealth, isRetrying, retriesExhausted } = useBackendHealthStatus(true, manualRetryCount);
 
   // Wait for actor initialization
   if (actorFetching) {
@@ -37,7 +39,6 @@ export default function StartupHealthGate({ children }: StartupHealthGateProps) 
   // Show error if actor failed to initialize (not fetching but no actor)
   if (!actor) {
     const handleTryAgain = () => {
-      setRetryCount(prev => prev + 1);
       // Trigger a page reload to reinitialize the actor
       window.location.reload();
     };
@@ -96,18 +97,23 @@ export default function StartupHealthGate({ children }: StartupHealthGateProps) 
     );
   }
 
-  // Check backend health after actor is ready
-  if (status === 'checking') {
+  // Show connecting/retrying state during automatic retries
+  if (status === 'checking' || status === 'retrying') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="max-w-lg w-full">
           <CardHeader>
-            <CardTitle>Checking Connection...</CardTitle>
-            <CardDescription>Verifying backend service availability</CardDescription>
+            <CardTitle>{isRetrying ? 'Reconnecting...' : 'Checking Connection...'}</CardTitle>
+            <CardDescription>
+              {isRetrying 
+                ? 'The backend is starting up, please wait...' 
+                : 'Verifying backend service availability'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-center py-8">
+            <div className="flex flex-col items-center justify-center py-8 space-y-4">
               <RotateCw className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">{message}</p>
             </div>
           </CardContent>
         </Card>
@@ -115,8 +121,10 @@ export default function StartupHealthGate({ children }: StartupHealthGateProps) 
     );
   }
 
-  if (status === 'unreachable') {
+  // Only show unreachable UI after retries are exhausted
+  if (status === 'unreachable' && retriesExhausted) {
     const handleTryAgain = () => {
+      setManualRetryCount(prev => prev + 1);
       refetchHealth();
     };
 

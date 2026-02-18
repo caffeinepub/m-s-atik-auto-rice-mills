@@ -20,7 +20,6 @@ import ChangePasswordPage from './admin/pages/ChangePasswordPage';
 import AdminAccountsPage from './admin/pages/AdminAccountsPage';
 import AdminNotFound from './admin/pages/AdminNotFound';
 import HeaderNav from './components/HeaderNav';
-import SiteFooter from './components/SiteFooter';
 import PublicAppErrorBoundary from './components/PublicAppErrorBoundary';
 import StartupHealthGate from './components/StartupHealthGate';
 
@@ -41,7 +40,6 @@ function PublicLayout() {
       <main className="flex-1">
         <Outlet />
       </main>
-      <SiteFooter />
     </div>
   );
 }

@@ -1,133 +1,52 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Working CRUD Admin Editors for Sections, Products, Gallery, Contact Info, and Messages",
+  "title": "Rollback-visible Version 19 labeling and resilient startup backend connectivity",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Replace placeholder admin editor pages with working CRUD UIs backed by existing canister methods and the current admin session token.",
+      "summary": "Ensure the UI reports build version '19' and avoid immediate public homepage 'Backend Unreachable' after the rollback deployment.",
       "acceptanceCriteria": [
-        "Visiting /admin/sections no longer shows the placeholder text and provides a working UI to list, create, edit, and delete sections.",
-        "Visiting /admin/products no longer shows the placeholder text and provides a working UI to list, create, edit, and delete products (name, description, price, imageUrl).",
-        "Visiting /admin/gallery no longer shows the placeholder text and provides a working UI to list, create, edit, and delete gallery items (title, caption, imageUrl).",
-        "Visiting /admin/contact no longer shows the placeholder text and provides a working UI to view and update contact info (address, phone, email).",
-        "Visiting /admin/messages no longer shows the placeholder text and provides a working UI to list messages and delete a message.",
-        "All admin editor actions require and use the current admin session token (from existing admin session handling)."
+        "The deployed site reports build version '19' via the existing build version UI (BuildVersionLabel/getBuildVersion).",
+        "Loading the homepage no longer immediately renders the 'Backend Unreachable' error state under normal network conditions.",
+        "Admin routes still load and function after the Version 19 deployment."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/admin/pages/SectionsEditor.tsx",
+          "path": "frontend/src/utils/buildInfo.ts",
           "operation": "modify",
-          "description": "Replace the placeholder with a working Sections CRUD editor: fetch list via existing query hook, add/edit forms, delete confirmation, and ensure create/update/delete calls use the admin token from useAdminSession. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+          "description": "Update getBuildVersion() fallback behavior to reliably report build version '19' when a build-time version is not provided, preserving existing precedence when VITE_BUILD_VERSION is set."
         },
         {
-          "path": "frontend/src/admin/pages/ProductsEditor.tsx",
+          "path": "frontend/src/components/StartupHealthGate.tsx",
           "operation": "modify",
-          "description": "Replace the placeholder with a working Products CRUD editor (name/description/price/imageUrl): list view, add/edit forms with BigInt price handling, and delete confirmation; all mutations must use the admin token from useAdminSession. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/pages/GalleryEditor.tsx",
-          "operation": "modify",
-          "description": "Replace the placeholder with a working Gallery CRUD editor (title/caption/imageUrl): list view, add/edit forms, and delete confirmation; all mutations must use the admin token from useAdminSession. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/pages/ContactInfoEditor.tsx",
-          "operation": "modify",
-          "description": "Replace the placeholder with a working Contact Info editor: load existing contact info and provide an update-only form (address/phone/email) that uses the admin token from useAdminSession. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/pages/MessagesInbox.tsx",
-          "operation": "modify",
-          "description": "Replace the placeholder with a working Messages inbox: list messages using the admin token and allow deleting a message with confirmation; delete must use the admin token from useAdminSession. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+          "description": "Adjust startup health gating so the public app is not immediately stranded on the unreachable screen during transient backend wake-up (align behavior with the retry window introduced in REQ-2) while keeping admin navigation functional."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Add React Query mutation hooks for admin content management and wire them into admin editor pages with query invalidation and session-token-aware errors.",
+      "summary": "Add an automatic post-deploy startup retry window for backend reachability before showing the final 'Backend Unreachable' state on the homepage.",
       "acceptanceCriteria": [
-        "There are mutation hooks available for: createSection, updateSection, deleteSection; addProduct, updateProduct, deleteProduct; addGalleryItem, updateGalleryItem, deleteGalleryItem; updateContactInfo; deleteMessage.",
-        "After a successful create/update/delete, the relevant query cache is invalidated and the UI updates without needing a full page reload.",
-        "If the admin token is missing/expired, the UI shows a user-facing error state consistent with existing admin error handling (no silent failures)."
+        "On initial load, the app automatically retries backend health checks for a short window (e.g., multiple attempts) before showing the unreachable UI.",
+        "The existing 'Try Again' and 'Reload Page' actions continue to work and trigger a new health check / reconnection attempt.",
+        "If the backend becomes reachable during the retry window, the app proceeds to render the homepage without requiring a manual reload."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/admin/hooks/useAdminContentMutations.ts",
-          "operation": "create",
-          "description": "Create React Query mutation hooks for admin content management backed by existing actor methods: createSection/updateSection/deleteSection, addProduct/updateProduct/deleteProduct, addGalleryItem/updateGalleryItem/deleteGalleryItem, updateContactInfo, deleteMessage. Each mutation must require an adminToken input, normalize errors consistently (including unauthorized/expired token using existing admin error utilities), and invalidate the relevant queries (sections/products/gallery/contactInfo/messages)."
-        },
-        {
-          "path": "frontend/src/admin/pages/SectionsEditor.tsx",
+          "path": "frontend/src/hooks/useBackendHealth.ts",
           "operation": "modify",
-          "description": "Wire the new admin mutation hooks into the Sections editor page, including query invalidation-driven refresh after create/update/delete and a clear user-facing error when the admin token is missing/expired. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+          "description": "Enable controlled automatic retry behavior for the backend health check (multiple attempts within a short window) and expose enough state (e.g., retrying vs final failure) for the startup gate to delay rendering the final unreachable UI."
         },
         {
-          "path": "frontend/src/admin/pages/ProductsEditor.tsx",
+          "path": "frontend/src/components/StartupHealthGate.tsx",
           "operation": "modify",
-          "description": "Wire the new admin mutation hooks into the Products editor page, including query invalidation-driven refresh after add/update/delete and a clear user-facing error when the admin token is missing/expired. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+          "description": "Implement a startup retry window UX: continue showing a 'checking/connecting' state while health checks are retrying, and only render the final unreachable screen after retries are exhausted; ensure 'Try Again' triggers a fresh retry cycle and 'Reload Page' still forces a full reload."
         },
         {
-          "path": "frontend/src/admin/pages/GalleryEditor.tsx",
+          "path": "frontend/src/pages/HomePage.tsx",
           "operation": "modify",
-          "description": "Wire the new admin mutation hooks into the Gallery editor page, including query invalidation-driven refresh after add/update/delete and a clear user-facing error when the admin token is missing/expired. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/pages/ContactInfoEditor.tsx",
-          "operation": "modify",
-          "description": "Wire the new updateContactInfo mutation hook into the Contact Info editor page, including query invalidation-driven refresh after save and a clear user-facing error when the admin token is missing/expired. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/pages/MessagesInbox.tsx",
-          "operation": "modify",
-          "description": "Wire the new deleteMessage mutation hook into the Messages inbox page, including query invalidation-driven refresh after delete and a clear user-facing error when the admin token is missing/expired. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Implement consistent admin editor UX across pages: list with loading/empty/error states, Add and Edit flows, delete confirmation, and basic form validation.",
-      "acceptanceCriteria": [
-        "Each editor page shows a loading state while fetching data and a clear empty state when there are no items.",
-        "Each editor page provides an Add flow (except Contact Info which is update-only).",
-        "Edit flows allow updating existing entries and saving changes.",
-        "Delete flows require user confirmation before the delete mutation runs.",
-        "Form validation prevents submitting empty required fields (e.g., section title/content; product name/description/imageUrl; gallery title/imageUrl; contact email/phone/address)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/admin/components/AdminDeleteConfirmDialog.tsx",
-          "operation": "create",
-          "description": "Add a reusable admin-only delete confirmation wrapper (composing existing shadcn/ui AlertDialog) to standardize confirmation UX across editors. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/components/AdminFormErrorAlert.tsx",
-          "operation": "create",
-          "description": "Add a small reusable form error alert/panel component (composing existing shadcn/ui Alert) to standardize validation + mutation error display across admin editor pages. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/pages/SectionsEditor.tsx",
-          "operation": "modify",
-          "description": "Implement consistent UX: list view using LoadingState/ErrorState/EmptyState, Add section form with required-field validation, inline or modal edit flow, and delete confirmation using the shared confirmation component. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/pages/ProductsEditor.tsx",
-          "operation": "modify",
-          "description": "Implement consistent UX: list view using LoadingState/ErrorState/EmptyState, Add product form with required-field + numeric price validation, edit flow, and delete confirmation using the shared confirmation component. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/pages/GalleryEditor.tsx",
-          "operation": "modify",
-          "description": "Implement consistent UX: list view using LoadingState/ErrorState/EmptyState, Add gallery item form with required-field validation, edit flow, and delete confirmation using the shared confirmation component. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/pages/ContactInfoEditor.tsx",
-          "operation": "modify",
-          "description": "Implement consistent UX: loading/error states when fetching, update-only form with required-field validation (email/phone/address), and consistent success/error feedback when saving. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/pages/MessagesInbox.tsx",
-          "operation": "modify",
-          "description": "Implement consistent UX: loading/error/empty states for message list and delete confirmation flow for removing a message, with clear user-facing mutation errors. Compose (do not modify) shadcn/ui components; verify the component's usage instructions before implementing."
+          "description": "Align homepage connectivity fallback with the improved startup gating so transient startup errors do not immediately force the full-page BackendUnavailableState, while preserving existing manual retry behavior for content queries."
         }
       ]
     }

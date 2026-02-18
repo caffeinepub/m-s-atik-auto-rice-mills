@@ -2,14 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-replace-the-placeholder-admin-pages-page-sections-products-gallery-contact-info-messages-so-they-no-longer-display-coming-soon-and-instead-provide-fully-working-crud-admin-functionality-backed-by-existing-canister-methods",
-      "featureTitle": "Replace the placeholder admin pages (Page Sections, Products, Gallery, Contact Info, Messages) so they no longer display 'coming soon' and instead provide fully working CRUD/admin functionality backed by existing canister methods.",
+      "featureId": "feature-rebuild-and-redeploy-the-application-as-version-19-rollback-from-the-currently-deployed-version-20-so-the-public-homepage-no-longer-shows-the-backend-unreachable-screen",
+      "featureTitle": "Rebuild and redeploy the application as Version 19 (rollback from the currently deployed Version 20) so the public homepage no longer shows the 'Backend Unreachable' screen.",
       "files": [
-        "frontend/src/admin/pages/ContactInfoEditor.tsx",
-        "frontend/src/admin/pages/GalleryEditor.tsx",
-        "frontend/src/admin/pages/MessagesInbox.tsx",
-        "frontend/src/admin/pages/ProductsEditor.tsx",
-        "frontend/src/admin/pages/SectionsEditor.tsx"
+        "frontend/src/components/StartupHealthGate.tsx",
+        "frontend/src/utils/buildInfo.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -25,15 +22,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-react-query-mutation-hooks-for-admin-content-management-sections-products-gallery-contact-info-messages-and-wire-them-into-the-corresponding-admin-editor-pages-including-query-invalidation-so-lists-refresh-after-changes",
-      "featureTitle": "Add React Query mutation hooks for admin content management (sections/products/gallery/contact info/messages) and wire them into the corresponding admin editor pages, including query invalidation so lists refresh after changes.",
+      "featureId": "feature-harden-the-app-s-post-deploy-startup-connectivity-flow-so-that-transient-backend-wake-up-time-does-not-strand-users-on-the-backend-unreachable-screen-on-the-homepage-add-an-automatic-re-check-retry-window-before-showing-the-final-unreachable-state",
+      "featureTitle": "Harden the app’s post-deploy startup connectivity flow so that transient backend wake-up time does not strand users on the 'Backend Unreachable' screen on the homepage; add an automatic re-check/retry window before showing the final unreachable state.",
       "files": [
-        "frontend/src/admin/hooks/useAdminContentMutations.ts",
-        "frontend/src/admin/pages/ContactInfoEditor.tsx",
-        "frontend/src/admin/pages/GalleryEditor.tsx",
-        "frontend/src/admin/pages/MessagesInbox.tsx",
-        "frontend/src/admin/pages/ProductsEditor.tsx",
-        "frontend/src/admin/pages/SectionsEditor.tsx"
+        "frontend/src/components/StartupHealthGate.tsx",
+        "frontend/src/hooks/useBackendHealth.ts",
+        "frontend/src/pages/HomePage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -45,31 +39,6 @@
       ],
       "testIds": [
         "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-basic-consistent-admin-editor-ux-for-each-page-list-view-with-empty-loading-error-states-an-add-action-edit-capability-and-a-delete-confirmation-flow-where-applicable",
-      "featureTitle": "Implement basic, consistent admin editor UX for each page: list view with empty/loading/error states, an 'Add' action, edit capability, and a delete confirmation flow (where applicable).",
-      "files": [
-        "frontend/src/admin/components/AdminDeleteConfirmDialog.tsx",
-        "frontend/src/admin/components/AdminFormErrorAlert.tsx",
-        "frontend/src/admin/pages/ContactInfoEditor.tsx",
-        "frontend/src/admin/pages/GalleryEditor.tsx",
-        "frontend/src/admin/pages/MessagesInbox.tsx",
-        "frontend/src/admin/pages/ProductsEditor.tsx",
-        "frontend/src/admin/pages/SectionsEditor.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
       ],
       "confidence": "high"
     }

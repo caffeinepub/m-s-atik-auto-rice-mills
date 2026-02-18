@@ -11,6 +11,7 @@ import { useAdminSession } from '../hooks/useAdminSession';
 import { LoadingState, ErrorState, EmptyState } from '@/components/QueryState';
 import { AdminDeleteConfirmDialog } from '../components/AdminDeleteConfirmDialog';
 import { AdminFormErrorAlert } from '../components/AdminFormErrorAlert';
+import { ImageStringUploadField } from '../components/ImageStringUploadField';
 import { toast } from 'sonner';
 import type { Product } from '@/backend';
 
@@ -213,16 +214,15 @@ export default function ProductsEditor() {
                   disabled={addMutation.isPending || updateMutation.isPending}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="imageUrl">Image URL</Label>
-                <Input
-                  id="imageUrl"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="Enter image URL"
-                  disabled={addMutation.isPending || updateMutation.isPending}
-                />
-              </div>
+              <ImageStringUploadField
+                label="Product Image"
+                value={formData.imageUrl}
+                onChange={(value) => setFormData({ ...formData, imageUrl: value })}
+                disabled={addMutation.isPending || updateMutation.isPending}
+                required
+                placeholder="Enter image URL or upload a file"
+                id="imageUrl"
+              />
               <div className="flex gap-2">
                 <Button type="submit" disabled={addMutation.isPending || updateMutation.isPending}>
                   {addMutation.isPending || updateMutation.isPending ? 'Saving...' : 'Save'}

@@ -19,6 +19,6 @@ export function getBuildVersion(): string {
     return `build-${date.toISOString().split('T')[0]}`;
   }
 
-  // Fallback to a generic version
-  return 'v1.0.0';
+  // Fallback to version 19 for this rollback deployment
+  return '19';
 }

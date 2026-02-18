@@ -4,31 +4,23 @@
   "summary": "New project",
   "architectural_notes": [],
   "known_issues": [
-    "Page Sections options (Products, Gallery, Contact Info, Messages) are not working and display 'section editor coming soon'"
+    "Homepage shows 'Backend Unreachable' after deployment; reloads did not resolve (backend may not be waking up)."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-replace-the-placeholder-admin-pages-page-sections-products-gallery-contact-info-messages-so-they-no-longer-display-coming-soon-and-instead-provide-fully-working-crud-admin-functionality-backed-by-existing-canister-methods",
-      "title": "Replace the placeholder admin pages (Page Sections, Products, Gallery, Contact Info, Messages) so they no longer display 'coming soon' and instead provide fully working CRUD/admin functionality backed by existing canister methods.",
+      "id": "feature-rebuild-and-redeploy-the-application-as-version-19-rollback-from-the-currently-deployed-version-20-so-the-public-homepage-no-longer-shows-the-backend-unreachable-screen",
+      "title": "Rebuild and redeploy the application as Version 19 (rollback from the currently deployed Version 20) so the public homepage no longer shows the 'Backend Unreachable' screen.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-react-query-mutation-hooks-for-admin-content-management-sections-products-gallery-contact-info-messages-and-wire-them-into-the-corresponding-admin-editor-pages-including-query-invalidation-so-lists-refresh-after-changes",
-      "title": "Add React Query mutation hooks for admin content management (sections/products/gallery/contact info/messages) and wire them into the corresponding admin editor pages, including query invalidation so lists refresh after changes.",
+      "id": "feature-harden-the-app-s-post-deploy-startup-connectivity-flow-so-that-transient-backend-wake-up-time-does-not-strand-users-on-the-backend-unreachable-screen-on-the-homepage-add-an-automatic-re-check-retry-window-before-showing-the-final-unreachable-state",
+      "title": "Harden the app’s post-deploy startup connectivity flow so that transient backend wake-up time does not strand users on the 'Backend Unreachable' screen on the homepage; add an automatic re-check/retry window before showing the final unreachable state.",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-basic-consistent-admin-editor-ux-for-each-page-list-view-with-empty-loading-error-states-an-add-action-edit-capability-and-a-delete-confirmation-flow-where-applicable",
-      "title": "Implement basic, consistent admin editor UX for each page: list view with empty/loading/error states, an 'Add' action, edit capability, and a delete confirmation flow (where applicable).",
-      "reqIds": [
-        "REQ-3"
       ],
       "version": 1
     }
@@ -36,12 +28,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Implement working Page Sections editor (Products, Gallery, Contact Info, Messages) instead of showing 'section editor coming soon'",
+      "summary": "Rollback/rebuild deployment to Version 19 to resolve homepage 'Backend Unreachable' issue",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "CMS Admin Panel",
+  "projectName": "Caffine AI",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -1,93 +1,58 @@
 {
   "kind": "build_request",
-  "title": "Implement working admin editors for Sections, Products, Gallery, Contact Info, and Messages",
-  "projectName": "CMS Admin Panel",
-  "priority": "normal",
+  "title": "Rollback deployment to Version 19 and restore homepage backend connectivity",
+  "projectName": "Caffine AI",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Replace the placeholder admin pages (Page Sections, Products, Gallery, Contact Info, Messages) so they no longer display 'coming soon' and instead provide fully working CRUD/admin functionality backed by existing canister methods.",
-      "target": "frontend",
+      "text": "Rebuild and redeploy the application as Version 19 (rollback from the currently deployed Version 20) so the public homepage no longer shows the 'Backend Unreachable' screen.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-4",
-          "msg-5"
+          "msg-1"
         ],
         "quotes": [
-          "Page Sections\nProducts\nGallery\nContact Info\nMessages\n\n\nthese option not working \nits says\nsection editor coming soon",
-          "another try?"
+          "re build to version 19"
         ]
       },
       "acceptanceCriteria": [
-        "Visiting /admin/sections no longer shows the placeholder text and provides a working UI to list, create, edit, and delete sections.",
-        "Visiting /admin/products no longer shows the placeholder text and provides a working UI to list, create, edit, and delete products (name, description, price, imageUrl).",
-        "Visiting /admin/gallery no longer shows the placeholder text and provides a working UI to list, create, edit, and delete gallery items (title, caption, imageUrl).",
-        "Visiting /admin/contact no longer shows the placeholder text and provides a working UI to view and update contact info (address, phone, email).",
-        "Visiting /admin/messages no longer shows the placeholder text and provides a working UI to list messages and delete a message.",
-        "All admin editor actions require and use the current admin session token (from existing admin session handling)."
+        "The deployed site reports build version '19' via the existing build version UI (BuildVersionLabel/getBuildVersion).",
+        "Loading the homepage no longer immediately renders the 'Backend Unreachable' error state under normal network conditions.",
+        "Admin routes still load and function after the Version 19 deployment."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add React Query mutation hooks for admin content management (sections/products/gallery/contact info/messages) and wire them into the corresponding admin editor pages, including query invalidation so lists refresh after changes.",
+      "text": "Harden the app’s post-deploy startup connectivity flow so that transient backend wake-up time does not strand users on the 'Backend Unreachable' screen on the homepage; add an automatic re-check/retry window before showing the final unreachable state.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "these option not working \nits says\nsection editor coming soon"
+          "homepage",
+          "i did it. not working"
         ]
       },
       "acceptanceCriteria": [
-        "There are mutation hooks available for: createSection, updateSection, deleteSection; addProduct, updateProduct, deleteProduct; addGalleryItem, updateGalleryItem, deleteGalleryItem; updateContactInfo; deleteMessage.",
-        "After a successful create/update/delete, the relevant query cache is invalidated and the UI updates without needing a full page reload.",
-        "If the admin token is missing/expired, the UI shows a user-facing error state consistent with existing admin error handling (no silent failures)."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Implement basic, consistent admin editor UX for each page: list view with empty/loading/error states, an 'Add' action, edit capability, and a delete confirmation flow (where applicable).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "Page Sections\nProducts\nGallery\nContact Info\nMessages"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Each editor page shows a loading state while fetching data and a clear empty state when there are no items.",
-        "Each editor page provides an Add flow (except Contact Info which is update-only).",
-        "Edit flows allow updating existing entries and saving changes.",
-        "Delete flows require user confirmation before the delete mutation runs.",
-        "Form validation prevents submitting empty required fields (e.g., section title/content; product name/description/imageUrl; gallery title/imageUrl; contact email/phone/address)."
+        "On initial load, the app automatically retries backend health checks for a short window (e.g., multiple attempts) before showing the unreachable UI.",
+        "The existing 'Try Again' and 'Reload Page' actions continue to work and trigger a new health check / reconnection attempt.",
+        "If the backend becomes reachable during the retry window, the app proceeds to render the homepage without requiring a manual reload."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (Shadcn UI components are read-only and must be composed, not modified).",
-    "Do not edit the immutable hook files listed in SYSTEM_CONTEXT (compose around them instead).",
-    "Keep all backend logic in the single Motoko actor (backend/main.mo); only add backend changes if required to support the editors (expected to be minimal because CRUD methods already exist)."
+    "Backend must remain a single Motoko actor in backend/main.mo; add backend/migration.mo only if a state upgrade is required.",
+    "Do not edit files under frontend/src/components/ui or any paths listed in frontend.immutablePaths."
   ],
   "nonGoals": [
-    "Implementing image uploads or file storage; imageUrl fields will remain URL/path text inputs.",
-    "Changing the existing admin authentication mechanism (username/password token flow).",
-    "Adding real-time updates (no websockets/live push)."
+    "Adding new product features unrelated to deployment rollback/connectivity.",
+    "Changing authentication providers (Internet Identity only).",
+    "Introducing external databases, servers, or real-time WebSockets."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }
